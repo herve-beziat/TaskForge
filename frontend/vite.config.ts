@@ -21,8 +21,18 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     // Échoue explicitement si le port est pris, au lieu de basculer
-    // silencieusement sur 5174 et de casser la redirection docker-compose.
+    // silencieusement sur 5174 et de casser le routage.
     strictPort: true,
+    // Vite rejette les requêtes dont l'en-tête Host lui est inconnu
+    // (protection contre la reliaison DNS). Le point initial autorise
+    // localhost et l'ensemble de ses sous-domaines.
+    allowedHosts: ['.localhost'],
+    hmr: {
+      // La stack est servie par Traefik sur le port 80 : c'est vers celui-ci
+      // que le navigateur doit ouvrir le websocket de rechargement à chaud,
+      // et non vers le 5173 interne au conteneur.
+      clientPort: 80,
+    },
     watch: {
       // Sous Linux natif, inotify traverse correctement les volumes montés.
       // Si le hot-reload ne réagit pas (macOS, Windows, montage réseau),
