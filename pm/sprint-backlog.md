@@ -24,8 +24,11 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 | TECH08 | Health checks | `/health` backend (API + BDD via terminus), `/healthz` front, `healthcheck` dans compose avec restart auto | 2 |
 | TECH09 | `/metrics` Prometheus | Tickets créés, temps moyen de réponse API, utilisateurs connectés | 3 |
 | TECH10 | `docker-compose.prod.yml` | Images buildées, pas de volumes source, env de prod ; les 2 modes documentés dans le README | 2 |
+| TECH22 | Reverse proxy Traefik | Routage par sous-domaines (`taskforge.localhost`, `api.taskforge.localhost`), découverte automatique par labels Docker, tableau de bord accessible ; ports applicatifs plus publiés directement | 3 |
 
-**Sous-total : 23 SP**
+**Sous-total : 26 SP**
+
+> **TECH22 ajouté en cours de sprint 1 (28/07)**, à la demande de l'encadrant. Hors cahier des charges, mais exigé par l'examinateur — donc traité en `must`. Le périmètre passe de 98 à 101 SP : la remontée est visible sur le burndown, c'est volontaire.
 
 ---
 
@@ -141,7 +144,7 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 
 | Bloc | SP |
 |---|---|
-| EPIC 0 — Fondations | 23 |
+| EPIC 0 — Fondations | 26 |
 | EPIC 1 — Auth & rôles | 14 |
 | EPIC 2 — Tickets | 16 |
 | EPIC 3 — Assignation | 5 |
@@ -149,10 +152,12 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 | EPIC 5 — Dashboard | 8 |
 | EPIC 6 — Tests | 7 |
 | EPIC 7 — Livrables | 17 |
-| **Total MVP** | **98** |
+| **Total MVP** | **101** |
 | Bonus (hors engagement) | 23 |
 
-**Répartition visée** — Sprint 1 : EPIC 0+1+2 = **53 SP** sur 6 jours (~9 SP/jour) · Sprint 2 : EPIC 3+4+5+6+7 = **45 SP** sur 4 jours (~11 SP/jour).
+**Répartition visée** — Sprint 1 : EPIC 0+1+2 = **56 SP** sur 6 jours (~9 SP/jour) · Sprint 2 : EPIC 3+4+5+6+7 = **45 SP** sur 4 jours (~11 SP/jour).
+
+**Journal du périmètre** — 28/07 : +3 SP (TECH22, Traefik, demande de l'encadrant). Total initial 98 → 101.
 
 ⚠️ **Sprint 2 est le point de tension.** Il concentre les 17 SP de livrables de soutenance en plus du fonctionnel. Deux mitigations à appliquer dès le sprint 1 :
 
