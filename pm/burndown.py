@@ -19,7 +19,8 @@ PM_DIR = Path(__file__).parent
 CSV_PATH = PM_DIR / "burndown.csv"
 PNG_PATH = PM_DIR / "burndown.png"
 
-TOTAL_SP = 98
+# Périmètre initial 98 SP. +3 le 28/07 (TECH22, Traefik, demande de l'encadrant).
+TOTAL_SP = 101
 # 10 jours ouvrés : 28-31 juil, week-end 1-2 août travaillé, 3-6 août
 JOURS = [
     (1, date(2026, 7, 28), "mar 28"),
