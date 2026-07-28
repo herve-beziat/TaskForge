@@ -23,10 +23,16 @@ Helpdesk interne de gestion de tickets d'incidents — MVP dockerisé.
 | Base de données | PostgreSQL + TypeORM |
 | Authentification | JWT + guards de rôles |
 | Conteneurisation | Docker + Docker Compose |
+| Reverse proxy | Traefik v3 |
 
 ## Prérequis
 
 - Docker et Docker Compose
+- **`buildx`** — nécessaire pour construire une étape ciblée d'un Dockerfile
+  multi-stage. Absent du paquet `docker.io` d'Ubuntu et de Linux Mint :
+  `sudo apt install docker-buildx`. Sans lui, Compose retombe sur le
+  constructeur historique, qui échoue avec un message trompeur du type
+  « pull access denied for base ».
 - `make`
 - **Windows : WSL2 obligatoire.** Docker Desktop tourne déjà sur le backend WSL2,
   aucune dépendance supplémentaire n'est donc nécessaire — il suffit de travailler
@@ -36,7 +42,8 @@ Helpdesk interne de gestion de tickets d'incidents — MVP dockerisé.
 
 ## Démarrage rapide
 
-> Disponible une fois TECH02 (docker-compose) et TECH06 (Makefile) livrés.
+> Les commandes `make` seront disponibles une fois TECH06 livré. En attendant,
+> `docker compose up -d --build` produit le même résultat.
 
 ```bash
 git clone git@github.com:herve-beziat/TaskForge.git
@@ -47,12 +54,19 @@ make start    # lance la stack complète : frontend + backend + PostgreSQL
 make help     # liste toutes les commandes disponibles
 ```
 
+Toute la stack est servie par Traefik sur le port 80. Les navigateurs résolvent
+`*.localhost` vers 127.0.0.1 : aucune modification de `/etc/hosts` n'est nécessaire.
+
 | Service | URL |
 |---|---|
-| Frontend | http://localhost:5173 |
-| API backend | http://localhost:3000 |
-| Health check | http://localhost:3000/health |
-| Métriques | http://localhost:3000/metrics |
+| Frontend | http://taskforge.localhost |
+| API backend | http://api.taskforge.localhost |
+| Health check | http://api.taskforge.localhost/health |
+| Métriques | http://api.taskforge.localhost/metrics |
+| Tableau de bord Traefik | http://traefik.localhost |
+
+Les domaines sont paramétrables via `APP_DOMAIN`, `API_DOMAIN` et `TRAEFIK_DOMAIN`
+dans le `.env`.
 
 ## Configuration
 
@@ -64,6 +78,7 @@ openssl rand -base64 48
 ```
 
 ## Structure du dépôt
+
 ```
 TaskForge/
 ├── frontend/           # Interface Vue 3
