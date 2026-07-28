@@ -1,0 +1,28 @@
+# Dépendances — réinstallées dans l'image via npm ci
+node_modules
+
+# Build et cache Vite
+dist
+.vite
+*.tsbuildinfo
+
+# Secrets — ne doivent jamais entrer dans une couche d'image
+.env
+.env.*
+!.env.example
+
+# Git
+.git
+.gitignore
+
+# Tests et couverture
+coverage
+
+# Éditeurs
+.vscode
+.idea
+*.swp
+
+# Système
+.DS_Store
+Thumbs.db
