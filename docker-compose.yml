@@ -2,6 +2,32 @@ name: taskforge
 
 services:
   # -------------------------------------------------------------------------
+  # Reverse proxy — point d'entrée unique de la stack
+  # -------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.7
+    container_name: taskforge-traefik
+    command:
+      # Découverte automatique des conteneurs via le socket Docker
+      - --providers.docker=true
+      # Seuls les services portant traefik.enable=true sont exposés
+      - --providers.docker.exposedByDefault=false
+      - --entryPoints.web.address=:80
+      - --api.dashboard=true
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+    volumes:
+      # Lecture seule : Traefik n'a besoin que d'observer les conteneurs.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DOMAIN}`)
+      - traefik.http.routers.dashboard.entrypoints=web
+      - traefik.http.routers.dashboard.service=api@internal
+
+  # -------------------------------------------------------------------------
   # Base de données
   # -------------------------------------------------------------------------
   postgres:
@@ -12,6 +38,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
+      # Conservé pour permettre la connexion d'un client SQL externe.
       - "${POSTGRES_HOST_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -25,7 +52,7 @@ services:
       start_period: 10s
 
   # -------------------------------------------------------------------------
-  # API NestJS
+  # API NestJS — exposée sur api.taskforge.localhost
   # -------------------------------------------------------------------------
   backend:
     build:
@@ -44,8 +71,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-    ports:
-      - "${BACKEND_PORT}:3000"
+      CORS_ORIGIN: ${CORS_ORIGIN}
     volumes:
       # Code source monté pour le hot-reload
       - ./backend:/app
@@ -55,9 +81,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend.rule=Host(`${API_DOMAIN}`)
+      - traefik.http.routers.backend.entrypoints=web
+      - traefik.http.services.backend.loadbalancer.server.port=${BACKEND_PORT}
 
   # -------------------------------------------------------------------------
-  # Interface Vue 3
+  # Interface Vue 3 — exposée sur taskforge.localhost
   # -------------------------------------------------------------------------
   frontend:
     build:
@@ -68,13 +99,16 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV}
       VITE_API_URL: ${VITE_API_URL}
-    ports:
-      - "${FRONTEND_PORT}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     depends_on:
       - backend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.frontend.entrypoints=web
+      - traefik.http.services.frontend.loadbalancer.server.port=5173
 
 volumes:
   pgdata:
