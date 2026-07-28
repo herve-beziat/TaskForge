@@ -1,0 +1,80 @@
+name: taskforge
+
+services:
+  # -------------------------------------------------------------------------
+  # Base de données
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: taskforge-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # Le backend attend cette sonde avant de démarrer : sans elle, il tente
+      # de se connecter à une base qui n'accepte pas encore les connexions.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # -------------------------------------------------------------------------
+  # API NestJS
+  # -------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: taskforge-backend
+    init: true
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      BACKEND_PORT: ${BACKEND_PORT}
+      LOG_LEVEL: ${LOG_LEVEL}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+    ports:
+      - "${BACKEND_PORT}:3000"
+    volumes:
+      # Code source monté pour le hot-reload
+      - ./backend:/app
+      # Volume anonyme : protège le node_modules de l'image, que le montage
+      # ci-dessus écraserait sinon.
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # -------------------------------------------------------------------------
+  # Interface Vue 3
+  # -------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: taskforge-frontend
+    init: true
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
