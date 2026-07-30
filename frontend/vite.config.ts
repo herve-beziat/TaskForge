@@ -1,12 +1,29 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+
+// Le sujet exige un endpoint /healthz côté frontend. En production, nginx le
+// sert (voir nginx.conf) ; en développement, c'est ce greffon qui s'en charge,
+// pour que la sonde Docker fonctionne dans les deux modes.
+function healthz(): Plugin {
+  return {
+    name: 'taskforge-healthz',
+    configureServer(server) {
+      server.middlewares.use('/healthz', (_requete, reponse) => {
+        reponse.statusCode = 200
+        reponse.setHeader('Content-Type', 'application/json')
+        reponse.end('{"status":"ok"}')
+      })
+    },
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    healthz(),
     vue(),
     vueDevTools(),
   ],

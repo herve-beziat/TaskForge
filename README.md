@@ -132,6 +132,40 @@ Les en-têtes d'authentification, les cookies et tout champ nommé `password`,
 `password_hash` ou `token` sont supprimés avant écriture. Le niveau de verbosité
 se règle via `LOG_LEVEL`.
 
+## Santé des services
+
+| Endpoint | Service | Vérifie |
+|---|---|---|
+| `http://api.taskforge.localhost/health` | Backend | API et connexion PostgreSQL |
+| `http://taskforge.localhost/healthz` | Frontend | Serveur web |
+
+`/health` exécute une vraie requête sur la base et renvoie 503 si elle ne répond
+pas. `/healthz` est servi par un greffon Vite en développement et par nginx en
+production.
+
+```bash
+curl -s http://api.taskforge.localhost/health | python3 -m json.tool
+docker compose ps
+```
+
+### Redémarrage automatique
+
+`restart: unless-stopped` relance un conteneur dont le processus s'arrête, mais
+**pas** un conteneur dont la sonde échoue alors que le processus tourne encore.
+Docker Compose seul ne sait pas le faire — il faudrait Docker Swarm.
+
+Le service `autoheal` comble cet écart : il surveille les sondes toutes les dix
+secondes et redémarre les conteneurs portant le label `autoheal=true` qui passent
+en `unhealthy`.
+
+Pour l'observer :
+
+```bash
+docker compose stop postgres     # /health du backend renvoie 503
+docker compose ps                # après ~45 s, le backend est redémarré
+docker compose start postgres    # tout revient healthy sans intervention
+```
+
 ## Structure du dépôt
 
 ```
