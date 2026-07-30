@@ -7,6 +7,7 @@ services:
   traefik:
     image: traefik:v3.7
     container_name: taskforge-traefik
+    restart: unless-stopped
     command:
       # Découverte automatique des conteneurs via le socket Docker
       - --providers.docker=true
@@ -14,6 +15,8 @@ services:
       - --providers.docker.exposedByDefault=false
       - --entryPoints.web.address=:80
       - --api.dashboard=true
+      # Active l'endpoint interrogé par « traefik healthcheck »
+      - --ping=true
       - --log.level=INFO
       - --accesslog=true
     ports:
@@ -21,11 +24,18 @@ services:
     volumes:
       # Lecture seule : Traefik n'a besoin que d'observer les conteneurs.
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     labels:
       - traefik.enable=true
       - traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DOMAIN}`)
       - traefik.http.routers.dashboard.entrypoints=web
       - traefik.http.routers.dashboard.service=api@internal
+      - autoheal=true
 
   # -------------------------------------------------------------------------
   # Base de données
@@ -33,6 +43,7 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: taskforge-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -50,6 +61,8 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    labels:
+      - autoheal=true
 
   # -------------------------------------------------------------------------
   # API NestJS — exposée sur api.taskforge.localhost
@@ -59,11 +72,13 @@ services:
       context: ./backend
       target: development
     container_name: taskforge-backend
+    restart: unless-stopped
     init: true
     environment:
       NODE_ENV: ${NODE_ENV}
       BACKEND_PORT: ${BACKEND_PORT}
       LOG_LEVEL: ${LOG_LEVEL}
+      LOG_DIR: ${LOG_DIR}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -72,7 +87,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       CORS_ORIGIN: ${CORS_ORIGIN}
-      LOG_DIR: ${LOG_DIR}
     volumes:
       # Code source monté pour le hot-reload
       - ./backend:/app
@@ -82,6 +96,18 @@ services:
       # Volume nommé partagé : centralise les logs JSON hors du conteneur,
       # de sorte qu'ils survivent à sa suppression.
       - logs:/var/log/taskforge
+    healthcheck:
+      # /health interroge réellement PostgreSQL et renvoie 503 si la base
+      # ne répond pas : la sonde couvre bien l'API et sa dépendance.
+      test:
+        ["CMD-SHELL", "wget --spider -q http://127.0.0.1:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      # En développement, Nest compile le TypeScript avant d'écouter :
+      # une sonde trop pressée le déclarerait défaillant pendant son
+      # démarrage normal.
+      start_period: 45s
     depends_on:
       postgres:
         condition: service_healthy
@@ -90,6 +116,7 @@ services:
       - traefik.http.routers.backend.rule=Host(`${API_DOMAIN}`)
       - traefik.http.routers.backend.entrypoints=web
       - traefik.http.services.backend.loadbalancer.server.port=${BACKEND_PORT}
+      - autoheal=true
 
   # -------------------------------------------------------------------------
   # Interface Vue 3 — exposée sur taskforge.localhost
@@ -99,6 +126,7 @@ services:
       context: ./frontend
       target: development
     container_name: taskforge-frontend
+    restart: unless-stopped
     init: true
     environment:
       NODE_ENV: ${NODE_ENV}
@@ -106,6 +134,14 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    healthcheck:
+      # Servi par un greffon Vite en développement, par nginx en production.
+      test:
+        ["CMD-SHELL", "wget --spider -q http://127.0.0.1:5173/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     depends_on:
       - backend
     labels:
@@ -113,6 +149,30 @@ services:
       - traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN}`)
       - traefik.http.routers.frontend.entrypoints=web
       - traefik.http.services.frontend.loadbalancer.server.port=5173
+      - autoheal=true
+
+  # -------------------------------------------------------------------------
+  # Redémarrage automatique des conteneurs défaillants
+  #
+  # « restart: unless-stopped » ne relance qu'un conteneur dont le processus
+  # s'est arrêté. Un conteneur dont la sonde échoue alors que le processus
+  # tourne encore resterait en place indéfiniment : c'est ce que ce service
+  # corrige, en surveillant les sondes et en redémarrant ce qui est marqué
+  # « unhealthy ».
+  # -------------------------------------------------------------------------
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    container_name: taskforge-autoheal
+    restart: unless-stopped
+    environment:
+      # Ne surveille que les services portant le label autoheal.
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 10
+      AUTOHEAL_START_PERIOD: 60
+    volumes:
+      # En écriture, contrairement au socket de Traefik : redémarrer un
+      # conteneur est une opération d'écriture. Concession de sécurité assumée.
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   pgdata:
