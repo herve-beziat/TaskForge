@@ -35,4 +35,28 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 ---
 
+## Jour 2 — mercredi 29 juillet 2026
+
+**Rôle du jour** : aucun
+
+- **Fait hier** : TECH01 (bootstrap), TECH02 (docker-compose de développement), TECH22 (Traefik)
+- **Prévu aujourd'hui** : TECH03 (Dockerfiles multi-stage)
+- **Blocages** : aucun
+- **Réalisé** : rien. Journée non travaillée, indisponibilité personnelle. TECH03 reporté au jour 3
+- **SP restants** : 93 / 101
+
+---
+
+## Jour 3 — jeudi 30 juillet 2026
+
+**Rôle du jour** : PM matin / Dev journée / QA soir
+
+- **Fait hier** : aucune avancée, journée non travaillée
+- **Prévu aujourd'hui** : TECH03 (Dockerfiles multi-stage et comparaison des tailles d'images)
+- **Réalisé** : TECH03. Gains mesurés — frontend 400 → 62,5 Mo (−84 %), backend 394 → 174 Mo (−56 %). L'endpoint `/healthz` du frontend a été posé au passage dans `nginx.conf`, ce qui allège TECH08
+- **Blocages** : aucun
+- **SP restants** : 90 / 101
+
+---
+
 <!-- Ajouter une entrée par jour ci-dessous, en suivant le template. -->
