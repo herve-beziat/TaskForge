@@ -53,9 +53,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : aucune avancée, journée non travaillée
 - **Prévu aujourd'hui** : TECH03 (Dockerfiles multi-stage et comparaison des tailles d'images)
-- **Réalisé** : TECH03, TECH04 et TECH05. Gains d'image mesurés — frontend 400 → 62,5 Mo (−84 %), backend 394 → 174 Mo (−56 %). L'endpoint `/healthz` du frontend a été posé au passage dans `nginx.conf`, ce qui allège TECH08. Hooks pre-commit et commit-msg vérifiés en conditions réelles : les deux bloquent. La CI a détecté dès sa première exécution une incohérence entre le composant racine et son test, introduite manuellement pendant TECH02
+- **Réalisé** : TECH03, TECH04, TECH05 et TECH06. Gains d'image mesurés — frontend 400 → 62,5 Mo (−84 %), backend 394 → 174 Mo (−56 %). L'endpoint `/healthz` du frontend a été posé au passage dans `nginx.conf`, ce qui allège TECH08. Hooks pre-commit et commit-msg vérifiés en conditions réelles : les deux bloquent. La CI a détecté dès sa première exécution une incohérence entre le composant racine et son test, introduite manuellement pendant TECH02
 - **Blocages** : aucun
-- **SP restants** : 86 / 101
+- **SP restants** : 85 / 101
 
 ---
 
