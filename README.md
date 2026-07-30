@@ -111,6 +111,27 @@ Réduire davantage l'image du backend supposerait une image distroless ou un
 regroupement des sources en un fichier unique. Le rapport effort/bénéfice n'a pas
 été jugé favorable dans le cadre de ce sprint.
 
+## Logs
+
+Le backend émet des logs JSON structurés via pino. Chaque ligne comporte au
+minimum `timestamp`, `level`, `message`, `request_id` et `user_id`.
+
+Ils sont écrits simultanément sur la sortie standard et dans un volume Docker
+nommé, de sorte qu'ils survivent à la suppression du conteneur.
+
+```bash
+docker compose logs -f backend                                  # sortie lisible
+docker compose exec backend tail -f /var/log/taskforge/app.log  # JSON brut
+```
+
+L'identifiant de requête est repris depuis l'en-tête `x-request-id` s'il est
+fourni, sinon généré, et renvoyé dans la réponse — ce qui permet de relier un
+incident signalé par un utilisateur à sa ligne de log.
+
+Les en-têtes d'authentification, les cookies et tout champ nommé `password`,
+`password_hash` ou `token` sont supprimés avant écriture. Le niveau de verbosité
+se règle via `LOG_LEVEL`.
+
 ## Structure du dépôt
 
 ```

@@ -72,12 +72,16 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       CORS_ORIGIN: ${CORS_ORIGIN}
+      LOG_DIR: ${LOG_DIR}
     volumes:
       # Code source monté pour le hot-reload
       - ./backend:/app
       # Volume anonyme : protège le node_modules de l'image, que le montage
       # ci-dessus écraserait sinon.
       - /app/node_modules
+      # Volume nommé partagé : centralise les logs JSON hors du conteneur,
+      # de sorte qu'ils survivent à sa suppression.
+      - logs:/var/log/taskforge
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,3 +116,4 @@ services:
 
 volumes:
   pgdata:
+  logs:

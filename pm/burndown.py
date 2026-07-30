@@ -54,15 +54,19 @@ def main():
     jours = [j for j, _, _ in JOURS]
     labels = [lbl for _, _, lbl in JOURS]
 
-    # Ligne idéale : de TOTAL_SP au jour 1 jusqu'à 0 au dernier jour
+    # Convention : les relevés réels sont pris EN FIN de journée. La ligne idéale
+    # doit donc partir du total à un jour 0 — avant le début du sprint — et non au
+    # jour 1, sans quoi elle n'attendrait aucune avancée le premier jour et
+    # comparerait un début de journée à une fin de journée.
     dernier = jours[-1]
-    ideal = [TOTAL_SP * (dernier - j) / (dernier - 1) for j in jours]
+    jours_ideal = [0] + jours
+    ideal = [TOTAL_SP * (dernier - j) / dernier for j in jours_ideal]
 
     jours_reels = sorted(j for j in reel if j in jours)
     valeurs_reelles = [reel[j] for j in jours_reels]
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(jours, ideal, "--", color="#94a3b8", linewidth=2, label="Idéal")
+    ax.plot(jours_ideal, ideal, "--", color="#94a3b8", linewidth=2, label="Idéal")
     if jours_reels:
         ax.plot(
             jours_reels,
@@ -82,8 +86,9 @@ def main():
     ax.set_title("TaskForge — Burn-down chart", fontsize=14, pad=20)
     ax.set_xlabel("Jour du sprint")
     ax.set_ylabel("Story points restants")
-    ax.set_xticks(jours)
-    ax.set_xticklabels(labels)
+    ax.set_xticks(jours_ideal)
+    ax.set_xticklabels(["départ"] + labels)
+    ax.set_xlim(-0.3, dernier + 0.3)
     ax.set_ylim(0, TOTAL_SP * 1.08)
     ax.grid(axis="y", alpha=0.3)
     ax.legend()

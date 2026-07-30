@@ -20,7 +20,11 @@ ENV NODE_ENV=development
 
 # Propriété de /app donnée à node avant l'installation, pour que node_modules
 # appartienne à l'utilisateur non-root et reste inscriptible depuis le volume.
-RUN chown -R node:node /app
+# Le dossier de logs suit la même logique : le volume nommé hérite de la
+# propriété du dossier présent dans l'image au moment de sa création.
+RUN chown -R node:node /app \
+  && mkdir -p /var/log/taskforge \
+  && chown -R node:node /var/log/taskforge
 
 USER node
 
@@ -63,7 +67,9 @@ FROM base AS production
 
 ENV NODE_ENV=production
 
-RUN chown -R node:node /app
+RUN chown -R node:node /app \
+  && mkdir -p /var/log/taskforge \
+  && chown -R node:node /var/log/taskforge
 
 USER node
 
