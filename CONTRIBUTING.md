@@ -21,30 +21,53 @@ make help     # liste toutes les commandes disponibles
 
 ## Qualité de code
 
+### Organisation
+
+Le dépôt contient trois paquets npm : `backend/`, `frontend/`, et un paquet racine
+qui ne porte que l'outillage transverse (husky, lint-staged, commitlint). Aucune
+dépendance applicative ne doit être ajoutée au paquet racine.
+
+```bash
+npm run install:all    # installe les trois paquets
+```
+
 ### Linter et formatter
 
 | Outil | Rôle | Portée |
 |---|---|---|
-| **ESLint** | Analyse statique, détection d'erreurs et d'anti-patterns | `frontend/` et `backend/` |
-| **Prettier** | Formatage automatique (indentation, guillemets, points-virgules) | Tout le dépôt |
+| **ESLint** | Analyse statique, détection d'erreurs et d'anti-patterns | `backend/` et `frontend/` |
+| **Prettier** | Formatage (indentation, guillemets, points-virgules) | `backend/` et `frontend/` |
+| **oxlint** | Pré-linter rapide, écrit en Rust | `frontend/` uniquement |
 
-La configuration est partagée entre le front et le back : un seul langage (TypeScript), donc un seul jeu de règles.
+Chaque sous-projet conserve sa propre configuration : les règles utiles à une API
+NestJS et à une application Vue ne se recouvrent qu'en partie.
+
+`oxlint` n'est présent que sur le frontend, où le scaffolding Vue l'installe par
+défaut. Il ne fait pas doublon avec ESLint : `eslint-plugin-oxlint` désactive dans
+ESLint les règles qu'oxlint traite déjà. L'ajouter au backend n'apporterait aucun
+gain mesurable sur une base de cette taille.
 
 ```bash
-make lint        # vérifie lint + format sur tout le dépôt
+npm run lint           # vérifie sans modifier — ce que fait le hook
+npm run lint:fix       # corrige ce qui peut l'être
+npm run format         # reformate avec Prettier
+npm run format:check   # vérifie le formatage sans modifier
 ```
 
 ### Pre-commit hook
 
-Un hook **husky** + **lint-staged** s'exécute automatiquement à chaque `git commit` et **bloque le commit** si le code ne respecte pas les règles.
+Un hook **husky** + **lint-staged** s'exécute à chaque `git commit` et **bloque le
+commit** si le code ne respecte pas les règles.
 
-Le hook :
+Le hook **vérifie sans corriger**. C'est délibéré : une correction automatique
+modifierait des fichiers après leur indexation, et le commit contiendrait autre
+chose que ce qui a été relu. En cas d'échec, `npm run lint:fix` et `npm run format`
+règlent la plupart des cas.
 
-1. Applique Prettier sur les fichiers stagés (formatage automatique)
-2. Lance ESLint sur ces mêmes fichiers et échoue si une erreur subsiste
-3. Vérifie le format du message de commit (Conventional Commits) via **commitlint**
+Un second hook, sur `commit-msg`, valide le format du message via **commitlint**.
 
-L'installation est automatique : le script `prepare` de `package.json` déclenche `husky install` au `npm install`. Aucune manipulation manuelle nécessaire après un clone.
+L'installation est automatique : le script `prepare` du `package.json` racine
+déclenche husky au `npm install`. Aucune manipulation manuelle après un clone.
 
 Si un hook doit être contourné exceptionnellement (jamais sur du code applicatif) :
 
@@ -83,6 +106,11 @@ test: ajoute les tests unitaires de la machine à états des tickets
 docs: documente le gain de taille des images multi-stage
 chore: configure le pipeline GitHub Actions (build, test, lint)
 ```
+
+Types acceptés par commitlint : `build`, `chore`, `ci`, `docs`, `feat`, `fix`,
+`perf`, `refactor`, `revert`, `style`, `test`. Le sujet doit commencer en
+minuscule, ne pas se terminer par un point, et l'en-tête ne pas dépasser
+100 caractères.
 
 ### Règles de contribution
 

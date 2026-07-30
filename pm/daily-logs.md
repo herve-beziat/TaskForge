@@ -53,9 +53,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : aucune avancée, journée non travaillée
 - **Prévu aujourd'hui** : TECH03 (Dockerfiles multi-stage et comparaison des tailles d'images)
-- **Réalisé** : TECH03. Gains mesurés — frontend 400 → 62,5 Mo (−84 %), backend 394 → 174 Mo (−56 %). L'endpoint `/healthz` du frontend a été posé au passage dans `nginx.conf`, ce qui allège TECH08
+- **Réalisé** : TECH03 et TECH04. Gains d'image mesurés — frontend 400 → 62,5 Mo (−84 %), backend 394 → 174 Mo (−56 %). L'endpoint `/healthz` du frontend a été posé au passage dans `nginx.conf`, ce qui allège TECH08. Hooks pre-commit et commit-msg vérifiés en conditions réelles : les deux bloquent
 - **Blocages** : aucun
-- **SP restants** : 90 / 101
+- **SP restants** : 88 / 101
 
 ---
 
