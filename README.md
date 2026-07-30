@@ -42,9 +42,6 @@ Helpdesk interne de gestion de tickets d'incidents — MVP dockerisé.
 
 ## Démarrage rapide
 
-> Les commandes `make` seront disponibles une fois TECH06 livré. En attendant,
-> `docker compose up -d --build` produit le même résultat.
-
 ```bash
 git clone git@github.com:herve-beziat/TaskForge.git
 cd TaskForge
@@ -53,6 +50,10 @@ make init     # copie .env.example vers .env, installe les dépendances
 make start    # lance la stack complète : frontend + backend + PostgreSQL
 make help     # liste toutes les commandes disponibles
 ```
+
+`make help` détaille l'ensemble des cibles : cycle de vie de la stack (`start`,
+`stop`, `restart`, `logs`, `ps`), qualité (`lint`, `lint-fix`, `format`, `test`)
+et suivi de projet (`burndown`).
 
 Toute la stack est servie par Traefik sur le port 80. Les navigateurs résolvent
 `*.localhost` vers 127.0.0.1 : aucune modification de `/etc/hosts` n'est nécessaire.
