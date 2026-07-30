@@ -76,6 +76,39 @@ Générer un secret JWT avant le premier lancement :
 ```bash
 openssl rand -base64 48
 ```
+## Images Docker
+
+Les deux applications utilisent des Dockerfiles multi-stage : une étape `build`
+embarque tout l'outillage de compilation puis est écartée, seule l'étape finale
+est publiée.
+
+| Image | Développement | Production | Gain |
+|---|---|---|---|
+| Frontend | 400 Mo | 62,5 Mo | −84 % |
+| Backend | 394 Mo | 174 Mo | −56 % |
+| **Total** | **794 Mo** | **236 Mo** | **−70 %** |
+
+Mesures réalisées avec :
+
+```bash
+docker build --target development -t taskforge-backend:dev  ./backend
+docker build --target production  -t taskforge-backend:prod ./backend
+docker build --target development -t taskforge-frontend:dev  ./frontend
+docker build --target production  -t taskforge-frontend:prod ./frontend
+
+docker images --filter "reference=taskforge-*" \
+  --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+```
+
+L'écart entre les deux gains s'explique par la nature du livrable. Le frontend
+supprime purement son environnement d'exécution : `npm run build` produit des
+fichiers statiques que nginx sert sans aucune dépendance JavaScript. Le backend
+conserve Node, dont l'image de base représente à elle seule environ 130 Mo ; son
+gain provient de `npm ci --omit=dev`, qui écarte TypeScript, Jest et ESLint.
+
+Réduire davantage l'image du backend supposerait une image distroless ou un
+regroupement des sources en un fichier unique. Le rapport effort/bénéfice n'a pas
+été jugé favorable dans le cadre de ce sprint.
 
 ## Structure du dépôt
 
@@ -101,6 +134,5 @@ TaskForge/
 Ces sections seront renseignées au fil du sprint :
 
 - Schéma de la base de données — TECH17
-- Gain de taille des images multi-stage, avant/après — TECH03
 - Lancement en mode production (`docker-compose.prod.yml`) — TECH10
 - Diagramme d'architecture et ADR — TECH15, TECH16
