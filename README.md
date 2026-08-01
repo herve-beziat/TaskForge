@@ -147,6 +147,32 @@ production.
 curl -s http://api.taskforge.localhost/health | python3 -m json.tool
 docker compose ps
 ```
+## Métriques
+
+Le backend expose ses métriques au format Prometheus sur
+`http://api.taskforge.localhost/metrics`.
+
+| Métrique | Type | Alimentée par |
+|---|---|---|
+| `taskforge_tickets_created_total` | compteur | la création d'un ticket |
+| `taskforge_http_request_duration_seconds` | histogramme | un intercepteur global |
+| `taskforge_connected_users` | jauge | l'authentification |
+
+S'y ajoutent les métriques du processus Node — mémoire, boucle d'événements,
+ramasse-miettes — fournies par `prom-client`.
+
+```bash
+curl -s http://api.taskforge.localhost/metrics | grep '^taskforge_'
+```
+
+L'histogramme est étiqueté par méthode, motif de route et code de statut. Le
+**motif** (`/tickets/:id`) est utilisé, jamais l'URL réelle (`/tickets/42`) :
+chaque combinaison d'étiquettes crée une série temporelle distincte, et l'URL
+brute en produirait une par ressource consultée.
+
+> L'endpoint est exposé sans authentification, ce qui convient à un environnement
+> de développement. En production, il devrait être restreint au réseau interne ou
+> protégé — les métriques renseignent sur la charge et la structure de l'API.
 
 ### Redémarrage automatique
 
