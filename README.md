@@ -108,6 +108,24 @@ Générer un secret JWT avant le premier lancement :
 ```bash
 openssl rand -base64 48
 ```
+
+### Premier administrateur
+
+L'inscription attribue systématiquement le rôle `USER`, et les routes
+d'administration exigent `ADMIN` : le premier administrateur ne peut donc pas
+être créé par l'application elle-même.
+
+Après avoir créé un compte, le promouvoir en base :
+
+```bash
+docker compose exec postgres psql -U taskforge -d taskforge \
+  -c "update users set role='ADMIN' where email='votre@email.fr';"
+```
+
+Le changement est immédiat — inutile de se reconnecter, le rôle est relu à
+chaque requête. Cet administrateur peut ensuite gérer les rôles des autres
+comptes via `PATCH /users/:id`.
+
 ## Images Docker
 
 Les deux applications utilisent des Dockerfiles multi-stage : une étape `build`
