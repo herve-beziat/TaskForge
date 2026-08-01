@@ -44,6 +44,12 @@ export class User {
   })
   role: UserRole;
 
+  // Un compte désactivé ne peut plus se connecter, et ses requêtes en cours
+  // sont refusées dès la vérification suivante. La valeur par défaut vaut
+  // aussi pour les lignes existantes au moment où la colonne est ajoutée.
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive: boolean;
+
   // timestamptz conserve le fuseau horaire : les calculs de durée restent
   // justes, ce dont dépend directement le temps moyen de résolution (US15).
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })

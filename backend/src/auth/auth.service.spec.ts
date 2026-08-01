@@ -18,6 +18,7 @@ const utilisateurEnregistre = {
   email: 'herve@exemple.fr',
   name: 'Hervé',
   role: UserRole.USER,
+  isActive: true,
   createdAt: new Date('2026-08-01T12:00:00Z'),
 } as User;
 
@@ -141,12 +142,11 @@ describe('AuthService', () => {
 
       expect(resultat.accessToken).toBe('jeton-signe');
       expect(resultat.utilisateur).not.toHaveProperty('passwordHash');
-      // Le rôle voyage dans le jeton : les guards s'en serviront sans
-      // interroger la base.
+      // Le rôle ne figure pas dans le jeton : il est relu en base à chaque
+      // requête, ce qui rend un changement de rôle immédiat.
       expect(jwt.signAsync).toHaveBeenCalledWith({
         sub: utilisateurEnregistre.id,
         email: utilisateurEnregistre.email,
-        role: UserRole.USER,
       });
     });
 
@@ -160,6 +160,24 @@ describe('AuthService', () => {
         service.connecter({
           email: 'herve@exemple.fr',
           password: 'mauvais-mot-de-passe',
+        }),
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+      expect(jwt.signAsync).not.toHaveBeenCalled();
+    });
+
+    it('refuse un compte désactivé, avec le même message', async () => {
+      // Répondre « compte désactivé » confirmerait que l'adresse existe :
+      // c'est précisément ce que le message générique protège.
+      utilisateurs.trouverParEmail.mockResolvedValue({
+        ...utilisateurEnregistre,
+        isActive: false,
+        passwordHash: hachageValide,
+      });
+
+      await expect(
+        service.connecter({
+          email: 'herve@exemple.fr',
+          password: MOT_DE_PASSE,
         }),
       ).rejects.toBeInstanceOf(UnauthorizedException);
       expect(jwt.signAsync).not.toHaveBeenCalled();

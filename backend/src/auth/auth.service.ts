@@ -86,16 +86,17 @@ export class AuthService {
     const hachage = utilisateur?.passwordHash ?? HACHAGE_FACTICE;
     const correspond = await bcrypt.compare(donnees.password, hachage);
 
-    if (!utilisateur || !correspond) {
+    // Le compte désactivé échoue avec le même message que les autres cas :
+    // répondre « compte désactivé » confirmerait que l'adresse existe.
+    if (!utilisateur || !correspond || !utilisateur.isActive) {
       throw new UnauthorizedException('Identifiants invalides.');
     }
 
-    // Le rôle voyage dans le jeton : les guards de TECH11 pourront trancher
-    // sans interroger la base à chaque requête.
+    // Le rôle ne figure pas dans le jeton : il est relu en base à chaque
+    // requête par la stratégie, ce qui rend les changements immédiats.
     const contenu: ContenuJeton = {
       sub: utilisateur.id,
       email: utilisateur.email,
-      role: utilisateur.role,
     };
 
     return {
