@@ -78,9 +78,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : aucune avancée, journée non travaillée
 - **Prévu aujourd'hui** : TECH09 (endpoint `/metrics` Prometheus) puis TECH10 (compose de production), pour clore l'EPIC 0
-- **Réalisé** : TECH09 et TECH10 — l'EPIC 0 est clos, les fondations sont posées. Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
-- **Blocages** : un, levé — le type `Request` d'Express déclare `route` en propriété obligatoire, une interface qui l'étend ne peut donc pas la rendre optionnelle
-- **SP restants** : 75 / 101
+- **Réalisé** : TECH09, TECH10 et US01 — l'EPIC 0 est clos, les fondations sont posées et l'EPIC 1 est entamé. Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
+- **Blocages** : deux, levés — le type `Request` d'Express déclare `route` en propriété obligatoire, une interface qui l'étend ne peut donc pas la rendre optionnelle ; et une dépendance installée sur l'hôte reste absente du conteneur tant que le volume anonyme de `node_modules` n'est pas régénéré (`--renew-anon-volumes`)
+- **SP restants** : 72 / 101
 
 ---
 
