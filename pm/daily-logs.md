@@ -78,9 +78,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : aucune avancée, journée non travaillée
 - **Prévu aujourd'hui** : TECH09 (endpoint `/metrics` Prometheus) puis TECH10 (compose de production), pour clore l'EPIC 0
-- **Réalisé** : TECH09, TECH10, US01 et US02 — l'EPIC 0 est clos et l'authentification fonctionne de bout en bout. Deux boucles ouvertes depuis les fondations se referment : `user_id` se remplit dans les logs (en attente depuis TECH07) et la jauge d'utilisateurs connectés s'alimente (depuis TECH09). Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
+- **Réalisé** : TECH09, TECH10, US01, US02 et TECH11 — l'EPIC 0 est clos et l'authentification fonctionne de bout en bout, guards de rôles compris. Deux boucles ouvertes depuis les fondations se referment : `user_id` se remplit dans les logs (en attente depuis TECH07) et la jauge d'utilisateurs connectés s'alimente (depuis TECH09). Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
 - **Blocages** : deux, levés — le type `Request` d'Express déclare `route` en propriété obligatoire, une interface qui l'étend ne peut donc pas la rendre optionnelle ; et une dépendance installée sur l'hôte reste absente du conteneur tant que le volume anonyme de `node_modules` n'est pas régénéré (`--renew-anon-volumes`)
-- **SP restants** : 69 / 101
+- **SP restants** : 66 / 101
 
 ---
 

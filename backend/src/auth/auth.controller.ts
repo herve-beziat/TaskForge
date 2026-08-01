@@ -6,10 +6,9 @@ import {
   HttpStatus,
   Post,
   Req,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
+import { Auth } from './auth.decorator';
 import {
   AuthService,
   ResultatConnexion,
@@ -39,10 +38,11 @@ export class AuthController {
     return this.auth.connecter(donnees);
   }
 
-  // Permet de vérifier qu'un jeton est valide, non expiré, et que req.user
-  // est correctement alimenté par la stratégie.
+  // @Auth() sans argument : authentification requise, rôle indifférent.
+  // Un seul chemin de protection dans tout le projet, qu'il y ait un rôle
+  // à contrôler ou non.
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
+  @Auth()
   moi(@Req() requete: Request): UtilisateurAuthentifie {
     return requete.user as UtilisateurAuthentifie;
   }
