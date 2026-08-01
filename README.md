@@ -69,6 +69,37 @@ Toute la stack est servie par Traefik sur le port 80. Les navigateurs résolvent
 Les domaines sont paramétrables via `APP_DOMAIN`, `API_DOMAIN` et `TRAEFIK_DOMAIN`
 dans le `.env`.
 
+### Modes de lancement
+
+Deux configurations distinctes, à ne jamais lancer simultanément — elles se
+disputeraient le port 80.
+
+| | Développement | Production |
+|---|---|---|
+| Commande | `make start` | `make prod` |
+| Fichier | `docker-compose.yml` | `docker-compose.prod.yml` |
+| Étape Docker | `development` | `production` |
+| Code source | monté depuis l'hôte, hot-reload | contenu dans l'image |
+| Frontend servi par | serveur Vite (5173) | nginx (8080) |
+| Port PostgreSQL | publié sur l'hôte | non publié |
+| Tableau de bord Traefik | accessible | désactivé |
+
+Les deux piles portent des noms de projet différents (`taskforge` et
+`taskforge-prod`) et possèdent donc leurs propres volumes : lancer la production
+ne détruit pas la base de développement.
+
+```bash
+make stop                                      # arrêter le développement
+make prod                                      # lancer la production
+docker compose -f docker-compose.prod.yml ps   # état de la pile de production
+docker compose -f docker-compose.prod.yml down # l'arrêter
+```
+
+> `VITE_API_URL` est incrustée dans le bundle **au moment de la compilation** :
+> Vite ne lit plus aucune variable à l'exécution une fois le build statique
+> produit. Changer l'URL de l'API en production impose donc de reconstruire
+> l'image du frontend.
+
 ## Configuration
 
 Toutes les variables d'environnement sont documentées dans `.env.example`.
