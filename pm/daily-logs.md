@@ -78,11 +78,11 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : aucune avancée, journée non travaillée
 - **Prévu aujourd'hui** : TECH09 (endpoint `/metrics` Prometheus) puis TECH10 (compose de production), pour clore l'EPIC 0
-- **Réalisé** : TECH09, TECH10, US01, US02, TECH11 et US03 — session prolongée jusqu'à 00h10. **Les EPIC 0 et 1 sont clos** : infrastructure complète, authentification, rôles et administration des utilisateurs.
+- **Réalisé** : TECH09, TECH10, US01, US02, TECH11, US03 et US04 — session prolongée jusqu'à 01h. **Les EPIC 0 et 1 sont clos** : infrastructure complète, authentification, rôles et administration des utilisateurs. L'EPIC 2 est entamé avec la création de tickets, et le compteur `taskforge_tickets_created_total` — déclaré en TECH09 — trouve enfin son point d'incrémentation.
 - **Décision d'architecture revue en cours de route** : le rôle était transporté dans le jeton (US02) pour éviter d'interroger la base. US03 impose de relire le compte à chaque requête, sans quoi une désactivation ne prendrait effet qu'à l'expiration du jeton. Le rôle a donc été retiré du jeton — une donnée d'autorisation transportée mais non fiable serait un piège
 - **Manque identifié** : aucune route ne permet de créer le premier administrateur. Procédure SQL documentée dans le README, faute de quoi un évaluateur ne pourrait atteindre aucune fonction d'administration Deux boucles ouvertes depuis les fondations se referment : `user_id` se remplit dans les logs (en attente depuis TECH07) et la jauge d'utilisateurs connectés s'alimente (depuis TECH09). Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
 - **Blocages** : deux, levés — le type `Request` d'Express déclare `route` en propriété obligatoire, une interface qui l'étend ne peut donc pas la rendre optionnelle ; et une dépendance installée sur l'hôte reste absente du conteneur tant que le volume anonyme de `node_modules` n'est pas régénéré (`--renew-anon-volumes`)
-- **SP restants** : 61 / 101
+- **SP restants** : 58 / 101
 
 ---
 
