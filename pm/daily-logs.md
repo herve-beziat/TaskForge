@@ -60,4 +60,28 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 ---
 
+## Jour 4 — vendredi 31 juillet 2026
+
+**Rôle du jour** : aucun
+
+- **Fait hier** : TECH03 à TECH08 — Dockerfiles multi-stage, outillage qualité, CI, Makefile, logs JSON, sondes de santé
+- **Prévu aujourd'hui** : TECH09 (endpoint `/metrics`)
+- **Blocages** : aucun
+- **Réalisé** : rien. Journée non travaillée. TECH09 reporté au jour 5
+- **SP restants** : 80 / 101
+
+---
+
+## Jour 5 — samedi 1er août 2026
+
+**Rôle du jour** : PM matin / Dev journée / QA soir
+
+- **Fait hier** : aucune avancée, journée non travaillée
+- **Prévu aujourd'hui** : TECH09 (endpoint `/metrics` Prometheus) puis TECH10 (compose de production), pour clore l'EPIC 0
+- **Réalisé** : TECH09. Les 25 vulnérabilités documentées en TECH07 ont disparu d'elles-mêmes : npm a résolu pour chaque branche de `minimatch` la version corrective de `brace-expansion` correspondante (1.1.18, 2.1.4, 5.0.9). L'analyse initiale était fausse — le correctif existe sur chaque branche majeure, forcer le 5.x était inutile et cassant. À rectifier dans l'ADR
+- **Blocages** : un, levé — le type `Request` d'Express déclare `route` en propriété obligatoire, une interface qui l'étend ne peut donc pas la rendre optionnelle
+- **SP restants** : 77 / 101
+
+---
+
 <!-- Ajouter une entrée par jour ci-dessous, en suivant le template. -->
