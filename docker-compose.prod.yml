@@ -1,0 +1,136 @@
+name: taskforge-prod
+
+services:
+  # -------------------------------------------------------------------------
+  # Reverse proxy — tableau de bord désactivé
+  # -------------------------------------------------------------------------
+  traefik:
+    image: traefik:v3.7
+    container_name: taskforge-prod-traefik
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --entryPoints.web.address=:80
+      # Le tableau de bord expose la topologie complète sans authentification :
+      # acceptable en développement, pas ici.
+      - --api.dashboard=false
+      - --ping=true
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    labels:
+      - autoheal=true
+
+  # -------------------------------------------------------------------------
+  # Base de données — aucun port publié
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: taskforge-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    labels:
+      - autoheal=true
+
+  # -------------------------------------------------------------------------
+  # API NestJS — image compilée, aucun code monté
+  # -------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      target: production
+    image: taskforge-backend:prod
+    container_name: taskforge-prod-backend
+    restart: unless-stopped
+    init: true
+    environment:
+      # Fixé ici plutôt que lu depuis .env : l'environnement est une propriété
+      # de cette configuration, pas une variable.
+      NODE_ENV: production
+      BACKEND_PORT: ${BACKEND_PORT}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_DIR: ${LOG_DIR}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+    volumes:
+      # Seuls les logs sont montés : le code vient de l'image.
+      - logs:/var/log/taskforge
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend.rule=Host(`${API_DOMAIN}`)
+      - traefik.http.routers.backend.entrypoints=web
+      - traefik.http.services.backend.loadbalancer.server.port=${BACKEND_PORT}
+      - autoheal=true
+
+  # -------------------------------------------------------------------------
+  # Interface Vue 3 — fichiers statiques servis par nginx
+  # -------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        # Incrustée dans le bundle à la compilation : Vite ne lit plus rien
+        # à l'exécution une fois le build statique produit.
+        VITE_API_URL: ${VITE_API_URL}
+    image: taskforge-frontend:prod
+    container_name: taskforge-prod-frontend
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - backend
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.frontend.rule=Host(`${APP_DOMAIN}`)
+      - traefik.http.routers.frontend.entrypoints=web
+      # nginx tourne en utilisateur non-root : port 8080, pas 80.
+      - traefik.http.services.frontend.loadbalancer.server.port=8080
+      - autoheal=true
+
+  # -------------------------------------------------------------------------
+  # Redémarrage automatique des conteneurs défaillants
+  # -------------------------------------------------------------------------
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    container_name: taskforge-prod-autoheal
+    restart: unless-stopped
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 10
+      AUTOHEAL_START_PERIOD: 60
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  pgdata:
+  logs:

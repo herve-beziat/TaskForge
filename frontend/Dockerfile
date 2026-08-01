@@ -44,6 +44,12 @@ FROM base AS build
 
 ENV NODE_ENV=development
 
+# Vite incruste les variables VITE_* dans le bundle au moment de la compilation :
+# il n'y a plus de serveur pour les lire à l'exécution. L'URL de l'API doit donc
+# arriver comme argument de build, sinon le front construit pointerait dans le vide.
+ARG VITE_API_URL=http://api.taskforge.localhost
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN chown -R node:node /app
 
 USER node
