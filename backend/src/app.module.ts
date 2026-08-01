@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { databaseConfig } from './database/database.config';
 import { HealthModule } from './health/health.module';
 import { loggerConfig } from './logger/logger.config';
@@ -14,6 +15,9 @@ import { MetricsModule } from './metrics/metrics.module';
     TypeOrmModule.forRoot(databaseConfig),
     MetricsModule,
     HealthModule,
+    // UsersModule n'est pas listé ici : AuthModule l'importe déjà,
+    // et Nest ne l'instancie qu'une seule fois.
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
