@@ -86,10 +86,12 @@ export const loggerConfig: Params = {
         remove: true,
       },
 
-      // Docker sonde /health toutes les cinq secondes : sans cette exclusion,
-      // le fichier de logs serait noyé sous des lignes sans valeur.
+      // Docker sonde /health toutes les dix secondes et Prometheus collecte
+      // /metrics tout aussi régulièrement : sans ces exclusions, le fichier de
+      // logs serait noyé sous des lignes sans valeur.
       autoLogging: {
-        ignore: (req: IncomingMessage) => req.url === '/health',
+        ignore: (req: IncomingMessage) =>
+          req.url === '/health' || req.url === '/metrics',
       },
     },
     flux,

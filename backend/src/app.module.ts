@@ -6,11 +6,13 @@ import { AppService } from './app.service';
 import { databaseConfig } from './database/database.config';
 import { HealthModule } from './health/health.module';
 import { loggerConfig } from './logger/logger.config';
+import { MetricsModule } from './metrics/metrics.module';
 
 @Module({
   imports: [
     LoggerModule.forRoot(loggerConfig),
     TypeOrmModule.forRoot(databaseConfig),
+    MetricsModule,
     HealthModule,
   ],
   controllers: [AppController],
