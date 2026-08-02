@@ -101,7 +101,10 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Décision de conception** : le temps moyen est calculé par une fonction pure en TypeScript plutôt que par `AVG` en SQL. Le sujet exige un *test unitaire* de ce calcul ; laissé à PostgreSQL, il n'y aurait plus eu que du formatage à tester, et TECH13 aurait porté sur autre chose que ce qu'il nomme. Le service ne charge que deux colonnes des tickets résolus. Écart assumé, à consigner dans l'ADR
 - **US16 volontairement non fermée** : le graphique de répartition est un livrable front, et le front n'existe pas. La donnée est livrée, l'issue reste ouverte — fermer sur une promesse se repère en relecture
 - **Blocages** : un, levé — le cache de compilation incrémentale de TypeScript gardait une vision périmée du service après un changement de constructeur. Le conteneur affichait une erreur sur une méthode pourtant présente. Résolu en supprimant `dist/` et le fichier `.tsbuildinfo`
-- **SP restants** : 22 / 101
+- **Correction de périmètre, +23 SP** : l'interface n'était chiffrée nulle part. Les seize US du backlog sont rédigées en critères backend et ont toutes été fermées sur une livraison backend, alors que le cahier des charges exige une interface. Ce n'est pas un ajout de scope mais un oubli d'estimation à la planification. EPIC 8 créé (TECH23, US17 à US21), périmètre 101 → 124. Une courbe « Périmètre » a été ajoutée au burndown : sans elle, l'ajout se serait lu comme une journée improductive
+- **Réalisé (suite)** : TECH23 — socle du front. Client HTTP avec injection du jeton et traitement du 401, store Pinia d'authentification, routeur et gardes, mise en page. Dix tests front, contre un seul jusqu'ici
+- **Correctif au passage** : `GET /auth/me` ne renvoyait que `id`, `email` et `role`, quand la connexion renvoie la projection complète. Au rechargement d'une page, le nom affiché dans la barre de navigation aurait disparu. La stratégie JWT charge déjà l'entité entière, les deux champs manquants ne coûtent aucune requête
+- **SP restants** : 40 / 124
 
 ---
 
