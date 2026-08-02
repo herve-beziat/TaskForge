@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { Counter } from 'prom-client';
 import { Repository } from 'typeorm';
-import { UserRole } from '../users/user.entity';
+import { User, UserRole } from '../users/user.entity';
+import { UsersService } from '../users/users.service';
 import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
 
@@ -34,10 +35,12 @@ type DepotSimule = jest.Mocked<
   >
 >;
 type CompteurSimule = jest.Mocked<Pick<Counter<string>, 'inc'>>;
+type UtilisateursSimule = jest.Mocked<Pick<UsersService, 'trouverParId'>>;
 
 describe('TicketsService', () => {
   let depot: DepotSimule;
   let compteur: CompteurSimule;
+  let utilisateurs: UtilisateursSimule;
   let service: TicketsService;
 
   beforeEach(() => {
@@ -49,9 +52,11 @@ describe('TicketsService', () => {
       update: jest.fn(),
     };
     compteur = { inc: jest.fn() };
+    utilisateurs = { trouverParId: jest.fn() };
     service = new TicketsService(
       depot as unknown as Repository<Ticket>,
       compteur as unknown as Counter<string>,
+      utilisateurs as unknown as UsersService,
     );
   });
 
@@ -351,6 +356,125 @@ describe('TicketsService', () => {
 
       const [, valeurs] = depot.update.mock.calls[0];
       expect(valeurs.resolvedAt).toBeNull();
+    });
+  });
+
+  describe('assigner', () => {
+    const ID_TICKET = '77777777-7777-7777-7777-777777777777';
+
+    function ticket(
+      status = TicketStatus.OPEN,
+      assigneeId: string | null = null,
+    ): Ticket {
+      return {
+        id: ID_TICKET,
+        reporterId: ID_RAPPORTEUR,
+        status,
+        assigneeId,
+      } as Ticket;
+    }
+
+    function destinataire(role: UserRole, isActive = true): User {
+      return { id: technicien.id, role, isActive } as User;
+    }
+
+    it('laisse un administrateur assigner à un technicien', async () => {
+      depot.findOne.mockResolvedValue(ticket());
+      utilisateurs.trouverParId.mockResolvedValue(
+        destinataire(UserRole.TECHNICIAN),
+      );
+
+      await service.assigner(ID_TICKET, technicien.id, admin);
+
+      expect(depot.update).toHaveBeenCalledWith(
+        { id: ID_TICKET },
+        { assigneeId: technicien.id },
+      );
+    });
+
+    it("refuse un destinataire qui n'est pas technicien", async () => {
+      // La clé étrangère garantit que l'utilisateur existe, pas qu'il sait
+      // traiter un ticket.
+      depot.findOne.mockResolvedValue(ticket());
+      utilisateurs.trouverParId.mockResolvedValue(destinataire(UserRole.USER));
+
+      await expect(
+        service.assigner(ID_TICKET, technicien.id, admin),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it('refuse un destinataire désactivé', async () => {
+      depot.findOne.mockResolvedValue(ticket());
+      utilisateurs.trouverParId.mockResolvedValue(
+        destinataire(UserRole.TECHNICIAN, false),
+      );
+
+      await expect(
+        service.assigner(ID_TICKET, technicien.id, admin),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('refuse un destinataire inexistant', async () => {
+      depot.findOne.mockResolvedValue(ticket());
+      utilisateurs.trouverParId.mockResolvedValue(null);
+
+      await expect(
+        service.assigner(ID_TICKET, technicien.id, admin),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it("laisse un technicien s'attribuer un ticket", async () => {
+      depot.findOne.mockResolvedValue(ticket());
+      utilisateurs.trouverParId.mockResolvedValue(
+        destinataire(UserRole.TECHNICIAN),
+      );
+
+      await service.assigner(ID_TICKET, technicien.id, technicien);
+
+      expect(depot.update).toHaveBeenCalled();
+    });
+
+    it("empêche un technicien d'attribuer un ticket à quelqu'un d'autre", async () => {
+      depot.findOne.mockResolvedValue(ticket());
+
+      await expect(
+        service.assigner(
+          ID_TICKET,
+          '88888888-8888-8888-8888-888888888888',
+          technicien,
+        ),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it('laisse un technicien libérer le ticket qu il détient', async () => {
+      depot.findOne.mockResolvedValue(
+        ticket(TicketStatus.IN_PROGRESS, technicien.id),
+      );
+
+      await service.assigner(ID_TICKET, null, technicien);
+
+      expect(depot.update).toHaveBeenCalledWith(
+        { id: ID_TICKET },
+        { assigneeId: null },
+      );
+    });
+
+    it("empêche un utilisateur ordinaire d'assigner", async () => {
+      depot.findOne.mockResolvedValue(ticket());
+
+      await expect(
+        service.assigner(ID_TICKET, technicien.id, utilisateur),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it("refuse d'assigner un ticket fermé", async () => {
+      depot.findOne.mockResolvedValue(ticket(TicketStatus.CLOSED));
+
+      await expect(
+        service.assigner(ID_TICKET, technicien.id, admin),
+      ).rejects.toBeInstanceOf(ForbiddenException);
     });
   });
 });
