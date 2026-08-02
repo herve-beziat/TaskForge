@@ -262,4 +262,95 @@ describe('TicketsService', () => {
       expect(depot.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('changerStatut', () => {
+    const ID_TICKET = '66666666-6666-6666-6666-666666666666';
+
+    function ticketAuStatut(status: TicketStatus): Ticket {
+      return { id: ID_TICKET, reporterId: ID_RAPPORTEUR, status } as Ticket;
+    }
+
+    it('refuse une transition impossible', async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.OPEN));
+
+      await expect(
+        service.changerStatut(ID_TICKET, TicketStatus.CLOSED, technicien),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it('laisse un technicien prendre en charge un ticket ouvert', async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.OPEN));
+
+      await service.changerStatut(
+        ID_TICKET,
+        TicketStatus.IN_PROGRESS,
+        technicien,
+      );
+
+      // Aucun resolvedAt : une prise en charge depuis OPEN n'a rien à effacer,
+      // la colonne est déjà nulle.
+      expect(depot.update).toHaveBeenCalledWith(
+        { id: ID_TICKET },
+        { status: TicketStatus.IN_PROGRESS },
+      );
+    });
+
+    it("empêche l'auteur de prendre en charge son propre ticket", async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.OPEN));
+
+      await expect(
+        service.changerStatut(ID_TICKET, TicketStatus.IN_PROGRESS, utilisateur),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it("laisse l'auteur clore son ticket une fois résolu", async () => {
+      // C'est au demandeur de confirmer que son problème est réglé.
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.RESOLVED));
+
+      await service.changerStatut(ID_TICKET, TicketStatus.CLOSED, utilisateur);
+
+      expect(depot.update).toHaveBeenCalled();
+    });
+
+    it('horodate la résolution', async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.IN_PROGRESS));
+
+      await service.changerStatut(ID_TICKET, TicketStatus.RESOLVED, technicien);
+
+      const [, valeurs] = depot.update.mock.calls[0];
+      expect(valeurs.status).toBe(TicketStatus.RESOLVED);
+      expect(valeurs.resolvedAt).toBeInstanceOf(Date);
+    });
+
+    it('conserve la date de résolution à la clôture', async () => {
+      // CLOSED est l'état final normal d'un ticket résolu : effacer sa date
+      // de résolution priverait le temps moyen d'US15 de toute donnée. C'est
+      // exactement le bug qu'une validation de bout en bout a révélé ici.
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.RESOLVED));
+
+      await service.changerStatut(ID_TICKET, TicketStatus.CLOSED, technicien);
+
+      const [, valeurs] = depot.update.mock.calls[0];
+      expect(valeurs.status).toBe(TicketStatus.CLOSED);
+      expect(valeurs).not.toHaveProperty('resolvedAt');
+    });
+
+    it('efface la date de résolution à la réouverture', async () => {
+      // Sans cela, un ticket rouvert puis re-résolu garderait la date de sa
+      // première résolution, et le temps moyen de résolution mesurerait
+      // n'importe quoi — sans que rien ne le signale.
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.RESOLVED));
+
+      await service.changerStatut(
+        ID_TICKET,
+        TicketStatus.IN_PROGRESS,
+        technicien,
+      );
+
+      const [, valeurs] = depot.update.mock.calls[0];
+      expect(valeurs.resolvedAt).toBeNull();
+    });
+  });
 });

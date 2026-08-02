@@ -13,6 +13,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket, TicketStatus } from './ticket.entity';
+import { transitionAutorisee } from './ticket-transitions';
 
 // Réduit à ce dont le service a besoin : il n'a pas à connaître le type
 // produit par la stratégie d'authentification, et les tests non plus.
@@ -129,6 +130,72 @@ export class TicketsService {
     await this.depot.update({ id }, donnees);
 
     return this.trouverParId(id, demandeur);
+  }
+
+  async changerStatut(
+    id: string,
+    nouveauStatut: TicketStatus,
+    demandeur: Demandeur,
+  ): Promise<Ticket> {
+    const ticket = await this.trouverParId(id, demandeur);
+
+    // Validée avant les droits : un statut impossible est une erreur de forme,
+    // pas de permission, et la réponse ne doit pas dépendre du demandeur.
+    if (!transitionAutorisee(ticket.status, nouveauStatut)) {
+      throw new BadRequestException(
+        `Transition impossible : ${ticket.status} vers ${nouveauStatut}.`,
+      );
+    }
+
+    this.verifierDroitDeChangerStatut(ticket, nouveauStatut, demandeur);
+
+    // Piloté par la transition, jamais par le client, et seulement quand la
+    // transition le justifie :
+    //   - vers RESOLVED : on horodate ;
+    //   - réouverture depuis RESOLVED : on efface, sinon un ticket rouvert
+    //     puis re-résolu garderait la date de sa première résolution ;
+    //   - tout le reste, dont la clôture : on n'y touche pas. Un ticket clos
+    //     doit conserver sa date de résolution, c'est elle que mesure US15.
+    const misesAJour: { status: TicketStatus; resolvedAt?: Date | null } = {
+      status: nouveauStatut,
+    };
+
+    if (nouveauStatut === TicketStatus.RESOLVED) {
+      misesAJour.resolvedAt = new Date();
+    } else if (
+      nouveauStatut === TicketStatus.IN_PROGRESS &&
+      ticket.status === TicketStatus.RESOLVED
+    ) {
+      misesAJour.resolvedAt = null;
+    }
+
+    await this.depot.update({ id }, misesAJour);
+
+    return this.trouverParId(id, demandeur);
+  }
+
+  // Technicien et administrateur pilotent l'ensemble du cycle. Le rapporteur
+  // n'intervient qu'une fois le problème déclaré résolu : c'est à lui de
+  // confirmer que c'est bien le cas, ou de signaler qu'il persiste.
+  private verifierDroitDeChangerStatut(
+    ticket: Ticket,
+    nouveauStatut: TicketStatus,
+    demandeur: Demandeur,
+  ): void {
+    if (demandeur.role !== UserRole.USER) {
+      return;
+    }
+
+    const validationParLeDemandeur =
+      ticket.status === TicketStatus.RESOLVED &&
+      (nouveauStatut === TicketStatus.CLOSED ||
+        nouveauStatut === TicketStatus.IN_PROGRESS);
+
+    if (!validationParLeDemandeur) {
+      throw new ForbiddenException(
+        'Seul un technicien peut faire évoluer ce ticket.',
+      );
+    }
   }
 
   // L'auteur peut corriger son signalement tant que personne ne l'a pris en

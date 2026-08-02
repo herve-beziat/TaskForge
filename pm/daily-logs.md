@@ -92,9 +92,10 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : huit tâches livrées en une session — TECH09, TECH10, US01, US02, TECH11, US03 et US04, soit 22 SP. Les EPIC 0 et 1 sont clos, l'EPIC 2 est entamé
 - **Prévu aujourd'hui** : US05 à US08 pour boucler la gestion des tickets — consultation, détail, modification, machine à états
-- **Réalisé** : US05, US06 et US07
+- **Réalisé** : US05, US06, US07 et US08 — **l'EPIC 2 est clos**, la gestion des tickets est complète. TECH12, l'un des deux tests nommés par le sujet, est livré par la même occasion : la table des transitions est testée sur les seize combinaisons possibles
+- **Bug trouvé par la validation manuelle, pas par les tests** : la clôture d'un ticket effaçait sa date de résolution, ce qui aurait privé le temps moyen d'US15 de toute donnée. Les tests unitaires passaient — aucun ne couvrait `RESOLVED → CLOSED`. Le test manquant a été ajouté. À reprendre dans la rétro : les deux niveaux de vérification ne se remplacent pas
 - **Blocages** : aucun
-- **SP restants** : 50 / 101
+- **SP restants** : 45 / 101
 
 ---
 
