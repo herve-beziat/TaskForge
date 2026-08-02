@@ -1,0 +1,271 @@
+/* ---------------------------------------------------------------------------
+   Tokens. Une seule source pour les couleurs, les espacements et les rayons —
+   ce qu'un framework utilitaire apporterait ici sans justifier sa dépendance.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --couleur-fond: #f8fafc;
+  --couleur-surface: #ffffff;
+  --couleur-bordure: #e2e8f0;
+  --couleur-texte: #0f172a;
+  --couleur-texte-attenue: #64748b;
+
+  --couleur-primaire: #2563eb;
+  --couleur-primaire-sombre: #1d4ed8;
+  --couleur-danger: #dc2626;
+  --couleur-succes: #16a34a;
+  --couleur-alerte: #d97706;
+
+  --espace-1: 0.25rem;
+  --espace-2: 0.5rem;
+  --espace-3: 0.75rem;
+  --espace-4: 1rem;
+  --espace-6: 1.5rem;
+  --espace-8: 2rem;
+
+  --rayon: 0.5rem;
+  --ombre: 0 1px 3px rgb(15 23 42 / 8%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 var(--espace-4);
+  line-height: 1.25;
+}
+
+a {
+  color: var(--couleur-primaire);
+}
+
+/* --- Mise en page ---------------------------------------------------------- */
+
+.contenu {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--espace-8) var(--espace-4);
+}
+
+.carte {
+  background: var(--couleur-surface);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre);
+  padding: var(--espace-6);
+}
+
+.pile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+}
+
+.ligne {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+  flex-wrap: wrap;
+}
+
+.attenue {
+  color: var(--couleur-texte-attenue);
+}
+
+/* --- Formulaires ----------------------------------------------------------- */
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: var(--espace-1);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: var(--espace-2) var(--espace-3);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  font: inherit;
+  background: var(--couleur-surface);
+  color: inherit;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--couleur-primaire);
+  outline-offset: 2px;
+}
+
+textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+/* --- Boutons --------------------------------------------------------------- */
+
+button {
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--couleur-primaire);
+  color: #fff;
+}
+
+button:hover:not(:disabled) {
+  background: var(--couleur-primaire-sombre);
+}
+
+/* L'état désactivé doit rester visible : une action bloquée qui ressemble à
+   une action disponible produit des clics répétés et une impression de panne. */
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.secondaire {
+  background: var(--couleur-surface);
+  border-color: var(--couleur-bordure);
+  color: var(--couleur-texte);
+}
+
+button.secondaire:hover:not(:disabled) {
+  background: var(--couleur-fond);
+}
+
+button.danger {
+  background: var(--couleur-danger);
+}
+
+/* --- Tableaux -------------------------------------------------------------- */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--couleur-surface);
+}
+
+th,
+td {
+  text-align: left;
+  padding: var(--espace-3);
+  border-bottom: 1px solid var(--couleur-bordure);
+}
+
+th {
+  font-size: 0.875rem;
+  color: var(--couleur-texte-attenue);
+  font-weight: 600;
+}
+
+/* --- Badges ---------------------------------------------------------------- */
+
+/* Nommés par intention et pilotés par attribut : le composant écrit
+   data-statut="OPEN" sans se soucier de la couleur, et un changement de charte
+   ne touche que ce fichier. */
+.badge {
+  display: inline-block;
+  padding: var(--espace-1) var(--espace-2);
+  border-radius: var(--rayon);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge[data-statut='OPEN'] {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge[data-statut='IN_PROGRESS'] {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge[data-statut='RESOLVED'] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge[data-statut='CLOSED'] {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.badge[data-priorite='LOW'] {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badge[data-priorite='MEDIUM'] {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.badge[data-priorite='HIGH'] {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.badge[data-priorite='CRITICAL'] {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* --- Messages -------------------------------------------------------------- */
+
+.message {
+  padding: var(--espace-3) var(--espace-4);
+  border-radius: var(--rayon);
+  border: 1px solid;
+}
+
+.message.erreur {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.message.succes {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.message ul {
+  margin: 0;
+  padding-left: var(--espace-4);
+}
+
+/* --- États ----------------------------------------------------------------- */
+
+/* Un état vide et un chargement en cours doivent se distinguer : « aucun
+   ticket » et « je n'ai pas encore répondu » n'appellent pas la même réaction. */
+.etat-vide {
+  padding: var(--espace-8);
+  text-align: center;
+  color: var(--couleur-texte-attenue);
+}
