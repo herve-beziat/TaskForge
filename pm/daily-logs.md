@@ -97,8 +97,11 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réalisé (suite)** : US09 et US10 — l'assignation et la réassignation partagent le même code, une seule PR ferme les deux issues. TECH12 fermé également, son contenu ayant été livré avec US08. **L'EPIC 3 est clos.**
 - **Réalisé (fin de journée)** : US11, US12 et US13 — filtres, tri et recherche textuelle. Les trois stories touchent la même route, le même DTO et la même méthode : une seule branche, une seule PR. **L'EPIC 4 est clos**, le backend fonctionnel est complet à l'exception du dashboard
 - **Écart assumé** : l'index `pg_trgm` prévu au modèle de données n'est pas posé — l'extension doit précéder la création des tables, or les scripts d'initialisation de l'image ne rejouent pas sur un volume existant. L'ajouter supposerait de détruire la base. Sur quelques dizaines de tickets, le parcours séquentiel est imperceptible. À consigner dans l'ADR
+- **Réalisé (suite)** : US14, US15 et **TECH13** — endpoint `GET /dashboard/stats` réservé à l'administrateur : compteurs par statut et par priorité, temps moyen de résolution. Le second des deux tests nommés par le sujet est livré, comme TECH12 l'avait été avec US08
+- **Décision de conception** : le temps moyen est calculé par une fonction pure en TypeScript plutôt que par `AVG` en SQL. Le sujet exige un *test unitaire* de ce calcul ; laissé à PostgreSQL, il n'y aurait plus eu que du formatage à tester, et TECH13 aurait porté sur autre chose que ce qu'il nomme. Le service ne charge que deux colonnes des tickets résolus. Écart assumé, à consigner dans l'ADR
+- **US16 volontairement non fermée** : le graphique de répartition est un livrable front, et le front n'existe pas. La donnée est livrée, l'issue reste ouverte — fermer sur une promesse se repère en relecture
 - **Blocages** : un, levé — le cache de compilation incrémentale de TypeScript gardait une vision périmée du service après un changement de constructeur. Le conteneur affichait une erreur sur une méthode pourtant présente. Résolu en supprimant `dist/` et le fichier `.tsbuildinfo`
-- **SP restants** : 29 / 101
+- **SP restants** : 22 / 101
 
 ---
 
