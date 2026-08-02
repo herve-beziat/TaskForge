@@ -15,7 +15,9 @@ import { TicketsService } from './tickets.service';
   imports: [TypeOrmModule.forFeature([Ticket]), UsersModule],
   controllers: [TicketsController],
   providers: [TicketsService],
-  // Exporté par anticipation : le tableau de bord (US14 à US16) en aura besoin.
+  // Exporté sans consommateur à ce jour. Le dashboard, qu'on attendait ici,
+  // injecte finalement le dépôt Ticket : la règle de visibilité par utilisateur
+  // qu'applique ce service n'a pas de sens sur une agrégation globale.
   exports: [TicketsService],
 })
 export class TicketsModule {}

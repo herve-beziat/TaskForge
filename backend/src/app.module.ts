@@ -4,6 +4,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { databaseConfig } from './database/database.config';
 import { HealthModule } from './health/health.module';
 import { loggerConfig } from './logger/logger.config';
@@ -20,6 +21,7 @@ import { TicketsModule } from './tickets/tickets.module';
     // et Nest ne l'instancie qu'une seule fois.
     AuthModule,
     TicketsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
