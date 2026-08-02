@@ -94,8 +94,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Prévu aujourd'hui** : US05 à US08 pour boucler la gestion des tickets — consultation, détail, modification, machine à états
 - **Réalisé** : US05, US06, US07 et US08 — **l'EPIC 2 est clos**, la gestion des tickets est complète. TECH12, l'un des deux tests nommés par le sujet, est livré par la même occasion : la table des transitions est testée sur les seize combinaisons possibles
 - **Bug trouvé par la validation manuelle, pas par les tests** : la clôture d'un ticket effaçait sa date de résolution, ce qui aurait privé le temps moyen d'US15 de toute donnée. Les tests unitaires passaient — aucun ne couvrait `RESOLVED → CLOSED`. Le test manquant a été ajouté. À reprendre dans la rétro : les deux niveaux de vérification ne se remplacent pas
-- **Blocages** : aucun
-- **SP restants** : 45 / 101
+- **Réalisé (suite)** : US09 et US10 — l'assignation et la réassignation partagent le même code, une seule PR ferme les deux issues. TECH12 fermé également, son contenu ayant été livré avec US08. **L'EPIC 3 est clos.**
+- **Blocages** : un, levé — le cache de compilation incrémentale de TypeScript gardait une vision périmée du service après un changement de constructeur. Le conteneur affichait une erreur sur une méthode pourtant présente. Résolu en supprimant `dist/` et le fichier `.tsbuildinfo`
+- **SP restants** : 37 / 101
 
 ---
 
