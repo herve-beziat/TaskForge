@@ -95,8 +95,10 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réalisé** : US05, US06, US07 et US08 — **l'EPIC 2 est clos**, la gestion des tickets est complète. TECH12, l'un des deux tests nommés par le sujet, est livré par la même occasion : la table des transitions est testée sur les seize combinaisons possibles
 - **Bug trouvé par la validation manuelle, pas par les tests** : la clôture d'un ticket effaçait sa date de résolution, ce qui aurait privé le temps moyen d'US15 de toute donnée. Les tests unitaires passaient — aucun ne couvrait `RESOLVED → CLOSED`. Le test manquant a été ajouté. À reprendre dans la rétro : les deux niveaux de vérification ne se remplacent pas
 - **Réalisé (suite)** : US09 et US10 — l'assignation et la réassignation partagent le même code, une seule PR ferme les deux issues. TECH12 fermé également, son contenu ayant été livré avec US08. **L'EPIC 3 est clos.**
+- **Réalisé (fin de journée)** : US11, US12 et US13 — filtres, tri et recherche textuelle. Les trois stories touchent la même route, le même DTO et la même méthode : une seule branche, une seule PR. **L'EPIC 4 est clos**, le backend fonctionnel est complet à l'exception du dashboard
+- **Écart assumé** : l'index `pg_trgm` prévu au modèle de données n'est pas posé — l'extension doit précéder la création des tables, or les scripts d'initialisation de l'image ne rejouent pas sur un volume existant. L'ajouter supposerait de détruire la base. Sur quelques dizaines de tickets, le parcours séquentiel est imperceptible. À consigner dans l'ADR
 - **Blocages** : un, levé — le cache de compilation incrémentale de TypeScript gardait une vision périmée du service après un changement de constructeur. Le conteneur affichait une erreur sur une méthode pourtant présente. Résolu en supprimant `dist/` et le fichier `.tsbuildinfo`
-- **SP restants** : 37 / 101
+- **SP restants** : 29 / 101
 
 ---
 
