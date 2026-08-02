@@ -86,4 +86,16 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 ---
 
+## Jour 6 — dimanche 2 août 2026
+
+**Rôle du jour** : PM matin / Dev journée / QA soir
+
+- **Fait hier** : huit tâches livrées en une session — TECH09, TECH10, US01, US02, TECH11, US03 et US04, soit 22 SP. Les EPIC 0 et 1 sont clos, l'EPIC 2 est entamé
+- **Prévu aujourd'hui** : US05 à US08 pour boucler la gestion des tickets — consultation, détail, modification, machine à états
+- **Réalisé** : US05
+- **Blocages** : aucun
+- **SP restants** : 55 / 101
+
+---
+
 <!-- Ajouter une entrée par jour ci-dessous, en suivant le template. -->
