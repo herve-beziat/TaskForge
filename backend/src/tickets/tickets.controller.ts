@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -13,6 +14,7 @@ import { Auth } from '../auth/auth.decorator';
 import type { UtilisateurAuthentifie } from '../auth/jwt.strategy';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
 
@@ -93,15 +95,30 @@ export class TicketsController {
     const demandeur = requete.user as UtilisateurAuthentifie;
     const ticket = await this.tickets.trouverParId(id, demandeur);
 
+    return this.projeterEnDetail(ticket);
+  }
+
+  // Le nom seul, jamais l'email : le critère demande d'afficher les
+  // intervenants, pas de publier leurs coordonnées.
+  private projeterEnDetail(ticket: Ticket): TicketDetaille {
     return {
       ...this.projeter(ticket),
       reporter: { id: ticket.reporter.id, name: ticket.reporter.name },
-      // Le nom seul, jamais l'email : le critère demande d'afficher les
-      // intervenants, pas de publier leurs coordonnées.
       assignee: ticket.assignee
         ? { id: ticket.assignee.id, name: ticket.assignee.name }
         : null,
     };
+  }
+
+  @Patch(':id')
+  async modifier(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() donnees: UpdateTicketDto,
+    @Req() requete: Request,
+  ): Promise<TicketDetaille> {
+    const demandeur = requete.user as UtilisateurAuthentifie;
+    const ticket = await this.tickets.modifier(id, donnees, demandeur);
+    return this.projeterEnDetail(ticket);
   }
 
   // Expose les identifiants, jamais les entités liées : renvoyer l'objet

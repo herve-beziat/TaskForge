@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Counter } from 'prom-client';
@@ -6,7 +11,8 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { UserRole } from '../users/user.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
-import { Ticket } from './ticket.entity';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { Ticket, TicketStatus } from './ticket.entity';
 
 // Réduit à ce dont le service a besoin : il n'a pas à connaître le type
 // produit par la stratégie d'authentification, et les tests non plus.
@@ -96,6 +102,56 @@ export class TicketsService {
     }
 
     return ticket;
+  }
+
+  async modifier(
+    id: string,
+    donnees: UpdateTicketDto,
+    demandeur: Demandeur,
+  ): Promise<Ticket> {
+    // Un corps vide passerait la validation, ne ferait rien, et renverrait
+    // un 200 trompeur.
+    if (
+      donnees.title === undefined &&
+      donnees.description === undefined &&
+      donnees.priority === undefined
+    ) {
+      throw new BadRequestException('Aucune modification demandée.');
+    }
+
+    // Réutilise le contrôle de visibilité et le 404 : un utilisateur ordinaire
+    // qui vise le ticket d'un autre obtient la même réponse qu'à la
+    // consultation, et cette règle n'existe qu'à un seul endroit.
+    const ticket = await this.trouverParId(id, demandeur);
+
+    this.verifierDroitDeModifier(ticket, demandeur);
+
+    await this.depot.update({ id }, donnees);
+
+    return this.trouverParId(id, demandeur);
+  }
+
+  // L'auteur peut corriger son signalement tant que personne ne l'a pris en
+  // charge. Passé ce stade, modifier la description reviendrait à réécrire
+  // l'énoncé du problème sous les pieds du technicien qui y travaille.
+  //
+  // Technicien et administrateur gardent la main jusqu'à la fermeture : ajuster
+  // la priorité d'un incident en cours fait partie de leur métier.
+  private verifierDroitDeModifier(ticket: Ticket, demandeur: Demandeur): void {
+    if (demandeur.role === UserRole.USER) {
+      if (ticket.status !== TicketStatus.OPEN) {
+        throw new ForbiddenException(
+          'Ce ticket est pris en charge et ne peut plus être modifié par son auteur.',
+        );
+      }
+      return;
+    }
+
+    if (ticket.status === TicketStatus.CLOSED) {
+      throw new ForbiddenException(
+        'Un ticket fermé ne peut plus être modifié.',
+      );
+    }
   }
 
   // Règle métier, pas détail de présentation : un utilisateur ordinaire ne
