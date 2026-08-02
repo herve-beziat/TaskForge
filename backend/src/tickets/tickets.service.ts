@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Counter } from 'prom-client';
@@ -71,6 +71,31 @@ export class TicketsService {
       limit,
       pages: Math.ceil(total / limit),
     };
+  }
+
+  async trouverParId(id: string, demandeur: Demandeur): Promise<Ticket> {
+    const ticket = await this.depot.findOne({
+      where: { id },
+      // Le hachage du mot de passe reste exclu de ces relations : la colonne
+      // porte select: false depuis US01.
+      relations: { reporter: true, assignee: true },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket introuvable.');
+    }
+
+    // 404 et non 403 : un 403 confirmerait l'existence du ticket, et il
+    // suffirait d'énumérer des identifiants pour cartographier la base. Le
+    // refus doit être indiscernable de l'absence.
+    if (
+      demandeur.role === UserRole.USER &&
+      ticket.reporterId !== demandeur.id
+    ) {
+      throw new NotFoundException('Ticket introuvable.');
+    }
+
+    return ticket;
   }
 
   // Règle métier, pas détail de présentation : un utilisateur ordinaire ne
