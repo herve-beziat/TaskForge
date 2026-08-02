@@ -16,6 +16,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
+import { AssignTicketDto } from './dto/assign-ticket.dto';
 import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
 
@@ -135,6 +136,23 @@ export class TicketsController {
     const ticket = await this.tickets.changerStatut(
       id,
       donnees.status,
+      demandeur,
+    );
+    return this.projeterEnDetail(ticket);
+  }
+
+  // Route dédiée, comme pour le statut : l'assignation obéit à ses propres
+  // règles et son propre contrôle du destinataire.
+  @Patch(':id/assignee')
+  async assigner(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() donnees: AssignTicketDto,
+    @Req() requete: Request,
+  ): Promise<TicketDetaille> {
+    const demandeur = requete.user as UtilisateurAuthentifie;
+    const ticket = await this.tickets.assigner(
+      id,
+      donnees.assigneeId,
       demandeur,
     );
     return this.projeterEnDetail(ticket);
