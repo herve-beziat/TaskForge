@@ -1,8 +1,12 @@
-import { NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Counter } from 'prom-client';
 import { Repository } from 'typeorm';
 import { UserRole } from '../users/user.entity';
-import { Ticket, TicketPriority } from './ticket.entity';
+import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
 
 const ID_RAPPORTEUR = '11111111-1111-1111-1111-111111111111';
@@ -24,7 +28,10 @@ const admin = {
 };
 
 type DepotSimule = jest.Mocked<
-  Pick<Repository<Ticket>, 'create' | 'save' | 'findAndCount' | 'findOne'>
+  Pick<
+    Repository<Ticket>,
+    'create' | 'save' | 'findAndCount' | 'findOne' | 'update'
+  >
 >;
 type CompteurSimule = jest.Mocked<Pick<Counter<string>, 'inc'>>;
 
@@ -39,6 +46,7 @@ describe('TicketsService', () => {
       save: jest.fn(),
       findAndCount: jest.fn(),
       findOne: jest.fn(),
+      update: jest.fn(),
     };
     compteur = { inc: jest.fn() };
     service = new TicketsService(
@@ -186,6 +194,72 @@ describe('TicketsService', () => {
 
       const appel = depot.findOne.mock.calls[0][0];
       expect(appel?.relations).toEqual({ reporter: true, assignee: true });
+    });
+  });
+
+  describe('modifier', () => {
+    const ID_TICKET = '55555555-5555-5555-5555-555555555555';
+
+    function ticketAuStatut(status: TicketStatus): Ticket {
+      return { id: ID_TICKET, reporterId: ID_RAPPORTEUR, status } as Ticket;
+    }
+
+    it('refuse un corps vide', async () => {
+      await expect(
+        service.modifier(ID_TICKET, {}, utilisateur),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it("laisse l'auteur corriger son ticket tant qu'il est ouvert", async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.OPEN));
+
+      await service.modifier(
+        ID_TICKET,
+        { title: 'Titre corrigé' },
+        utilisateur,
+      );
+
+      expect(depot.update).toHaveBeenCalledWith(
+        { id: ID_TICKET },
+        { title: 'Titre corrigé' },
+      );
+    });
+
+    it("empêche l'auteur de modifier un ticket pris en charge", async () => {
+      // Modifier la description reviendrait à réécrire l'énoncé du problème
+      // sous les pieds du technicien qui y travaille.
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.IN_PROGRESS));
+
+      await expect(
+        service.modifier(ID_TICKET, { title: 'Titre corrigé' }, utilisateur),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(depot.update).not.toHaveBeenCalled();
+    });
+
+    it('laisse un technicien modifier un ticket en cours', async () => {
+      // Ajuster la priorité d'un incident en cours fait partie de son métier.
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.IN_PROGRESS));
+
+      await service.modifier(
+        ID_TICKET,
+        { priority: TicketPriority.CRITICAL },
+        technicien,
+      );
+
+      expect(depot.update).toHaveBeenCalledWith(
+        { id: ID_TICKET },
+        { priority: TicketPriority.CRITICAL },
+      );
+    });
+
+    it('interdit toute modification sur un ticket fermé', async () => {
+      depot.findOne.mockResolvedValue(ticketAuStatut(TicketStatus.CLOSED));
+
+      await expect(
+        service.modifier(ID_TICKET, { title: 'Titre corrigé' }, admin),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(depot.update).not.toHaveBeenCalled();
     });
   });
 });
