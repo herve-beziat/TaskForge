@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Counter } from 'prom-client';
 import { FindOptionsWhere, Repository } from 'typeorm';
 import { UserRole } from '../users/user.entity';
+import { UsersService } from '../users/users.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -37,6 +38,10 @@ export class TicketsService {
     private readonly depot: Repository<Ticket>,
     @InjectMetric('taskforge_tickets_created_total')
     private readonly compteurCreations: Counter<string>,
+    // Nécessaire pour vérifier que le destinataire est bien un technicien
+    // actif : la contrainte de clé étrangère garantit qu'il existe, pas qu'il
+    // a le bon rôle.
+    private readonly utilisateurs: UsersService,
   ) {}
 
   // reporterId vient du jeton, jamais du corps de la requête : personne ne
@@ -172,6 +177,81 @@ export class TicketsService {
     await this.depot.update({ id }, misesAJour);
 
     return this.trouverParId(id, demandeur);
+  }
+
+  async assigner(
+    id: string,
+    assigneeId: string | null,
+    demandeur: Demandeur,
+  ): Promise<Ticket> {
+    const ticket = await this.trouverParId(id, demandeur);
+
+    if (ticket.status === TicketStatus.CLOSED) {
+      throw new ForbiddenException(
+        'Un ticket fermé ne peut plus être assigné.',
+      );
+    }
+
+    this.verifierDroitDAssigner(ticket, assigneeId, demandeur);
+    await this.verifierDestinataire(assigneeId);
+
+    await this.depot.update({ id }, { assigneeId });
+
+    return this.trouverParId(id, demandeur);
+  }
+
+  // L'administrateur répartit la charge à sa guise. Le technicien ne dispose
+  // que de lui-même : il prend un ticket, ou libère celui qu'il détient. C'est
+  // le fonctionnement réel d'un helpdesk, où l'on ne passe pas par sa
+  // hiérarchie pour se saisir d'un incident.
+  private verifierDroitDAssigner(
+    ticket: Ticket,
+    assigneeId: string | null,
+    demandeur: Demandeur,
+  ): void {
+    if (demandeur.role === UserRole.ADMIN) {
+      return;
+    }
+
+    if (demandeur.role !== UserRole.TECHNICIAN) {
+      throw new ForbiddenException(
+        'Seul un administrateur ou un technicien peut assigner un ticket.',
+      );
+    }
+
+    const sAttribue = assigneeId === demandeur.id;
+    const seRetire = assigneeId === null && ticket.assigneeId === demandeur.id;
+
+    if (!sAttribue && !seRetire) {
+      throw new ForbiddenException(
+        "Un technicien ne peut s'attribuer qu'un ticket pour lui-même, ou libérer le sien.",
+      );
+    }
+  }
+
+  // La clé étrangère garantit que l'utilisateur existe, rien de plus. Rien
+  // n'empêcherait sans cela d'assigner un ticket à un compte désactivé, ou à
+  // un utilisateur ordinaire qui n'a aucun moyen de le traiter.
+  private async verifierDestinataire(assigneeId: string | null): Promise<void> {
+    if (assigneeId === null) {
+      return;
+    }
+
+    const cible = await this.utilisateurs.trouverParId(assigneeId);
+
+    if (!cible) {
+      throw new BadRequestException('Utilisateur introuvable.');
+    }
+
+    if (cible.role !== UserRole.TECHNICIAN) {
+      throw new BadRequestException(
+        'Seul un technicien peut se voir assigner un ticket.',
+      );
+    }
+
+    if (!cible.isActive) {
+      throw new BadRequestException('Ce compte est désactivé.');
+    }
   }
 
   // Technicien et administrateur pilotent l'ensemble du cycle. Le rapporteur
