@@ -7,11 +7,11 @@ import {
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Counter } from 'prom-client';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { UserRole } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
-import { ListTicketsDto } from './dto/list-tickets.dto';
+import { ChampDeTri, ListTicketsDto, SensDeTri } from './dto/list-tickets.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket, TicketStatus } from './ticket.entity';
 import { transitionAutorisee } from './ticket-transitions';
@@ -67,11 +67,16 @@ export class TicketsService {
     const page = options.page ?? 1;
     const limit = options.limit ?? 20;
 
+    const champ = options.sortBy ?? ChampDeTri.CREATED_AT;
+    const sens = options.sortOrder ?? SensDeTri.DESC;
+
     const [donnees, total] = await this.depot.findAndCount({
-      where: this.filtreDeVisibilite(demandeur),
-      // Du plus récent au plus ancien : le dernier incident signalé est
-      // celui qui intéresse.
-      order: { createdAt: 'DESC' },
+      where: this.construireFiltre(options, demandeur),
+      // La clé est calculée, mais ChampDeTri est une union de littéraux : le
+      // typage tient sans conversion. C'est cette énumération, déclarée dans le
+      // DTO, qui garantit qu'aucune chaîne arbitraire n'atteint la clause
+      // ORDER BY — le point sensible, puisqu'elle n'est pas paramétrable.
+      order: { [champ]: sens },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -301,16 +306,43 @@ export class TicketsService {
     }
   }
 
-  // Règle métier, pas détail de présentation : un utilisateur ordinaire ne
-  // voit que ses propres signalements. Technicien et administrateur voient
-  // l'ensemble — un technicien doit pouvoir reprendre le ticket d'un collègue
-  // absent.
-  private filtreDeVisibilite(
+  // Assemble la visibilité et les filtres demandés.
+  //
+  // Visibilité : un utilisateur ordinaire ne voit que ses propres signalements.
+  // Technicien et administrateur voient l'ensemble — un technicien doit pouvoir
+  // reprendre le ticket d'un collègue absent.
+  private construireFiltre(
+    options: ListTicketsDto,
     demandeur: Demandeur,
-  ): FindOptionsWhere<Ticket> | undefined {
+  ): FindOptionsWhere<Ticket> | FindOptionsWhere<Ticket>[] {
+    const base: FindOptionsWhere<Ticket> = {};
+
     if (demandeur.role === UserRole.USER) {
-      return { reporterId: demandeur.id };
+      base.reporterId = demandeur.id;
     }
-    return undefined;
+    if (options.status !== undefined) {
+      base.status = options.status;
+    }
+    if (options.priority !== undefined) {
+      base.priority = options.priority;
+    }
+    if (options.assigneeId !== undefined) {
+      base.assigneeId = options.assigneeId;
+    }
+
+    if (options.search === undefined) {
+      return base;
+    }
+
+    const motif = ILike(`%${options.search}%`);
+
+    // Un tableau est interprété par TypeORM comme un OU. La base doit être
+    // répétée dans chaque branche : sans cela, la règle de visibilité et les
+    // filtres ne s'appliqueraient qu'à la première, et un utilisateur ordinaire
+    // verrait les tickets d'autrui dès qu'il lance une recherche.
+    return [
+      { ...base, title: motif },
+      { ...base, description: motif },
+    ];
   }
 }

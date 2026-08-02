@@ -4,11 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Counter } from 'prom-client';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { User, UserRole } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
+import { ChampDeTri, SensDeTri } from './dto/list-tickets.dto';
 
 const ID_RAPPORTEUR = '11111111-1111-1111-1111-111111111111';
 
@@ -113,14 +114,15 @@ describe('TicketsService', () => {
       await service.lister({}, technicien);
 
       const appel = depot.findAndCount.mock.calls[0][0];
-      expect(appel?.where).toBeUndefined();
+      // Filtre vide et non absent : aucune restriction de visibilité.
+      expect(appel?.where).toEqual({});
     });
 
     it('laisse un administrateur voir tous les tickets', async () => {
       await service.lister({}, admin);
 
       const appel = depot.findAndCount.mock.calls[0][0];
-      expect(appel?.where).toBeUndefined();
+      expect(appel?.where).toEqual({});
     });
 
     it('traduit la page et la taille en décalage et limite', async () => {
@@ -139,6 +141,77 @@ describe('TicketsService', () => {
       expect(resultat.total).toBe(25);
       expect(resultat.pages).toBe(3);
       expect(resultat.page).toBe(1);
+    });
+
+    it('filtre par statut, priorité et technicien assigné', async () => {
+      await service.lister(
+        {
+          status: TicketStatus.OPEN,
+          priority: TicketPriority.HIGH,
+          assigneeId: technicien.id,
+        },
+        admin,
+      );
+
+      const appel = depot.findAndCount.mock.calls[0][0];
+      expect(appel?.where).toEqual({
+        status: TicketStatus.OPEN,
+        priority: TicketPriority.HIGH,
+        assigneeId: technicien.id,
+      });
+    });
+
+    it('trie par date décroissante par défaut', async () => {
+      await service.lister({}, admin);
+
+      const appel = depot.findAndCount.mock.calls[0][0];
+      expect(appel?.order).toEqual({ createdAt: 'DESC' });
+    });
+
+    it('applique le tri demandé', async () => {
+      await service.lister(
+        { sortBy: ChampDeTri.PRIORITY, sortOrder: SensDeTri.ASC },
+        admin,
+      );
+
+      const appel = depot.findAndCount.mock.calls[0][0];
+      expect(appel?.order).toEqual({ priority: 'ASC' });
+    });
+
+    it('transforme une recherche en deux conditions alternatives', async () => {
+      await service.lister({ search: 'imprimante' }, admin);
+
+      const where = depot.findAndCount.mock.calls[0][0]
+        ?.where as FindOptionsWhere<Ticket>[];
+      expect(where).toHaveLength(2);
+      expect(where[0].title).toBeDefined();
+      expect(where[1].description).toBeDefined();
+    });
+
+    it('conserve la visibilité dans les deux branches de la recherche', async () => {
+      // Le test le plus important du lot. TypeORM interprète un tableau comme
+      // un OU : si la restriction de visibilité n'était posée que sur la
+      // première branche, un utilisateur ordinaire verrait les tickets d'autrui
+      // dès qu'il lance une recherche — et la liste sans recherche resterait
+      // correcte, ce qui rendrait la faille invisible.
+      await service.lister({ search: 'imprimante' }, utilisateur);
+
+      const where = depot.findAndCount.mock.calls[0][0]
+        ?.where as FindOptionsWhere<Ticket>[];
+      expect(where[0].reporterId).toBe(ID_RAPPORTEUR);
+      expect(where[1].reporterId).toBe(ID_RAPPORTEUR);
+    });
+
+    it('conserve les autres filtres dans les deux branches', async () => {
+      await service.lister(
+        { search: 'imprimante', status: TicketStatus.OPEN },
+        admin,
+      );
+
+      const where = depot.findAndCount.mock.calls[0][0]
+        ?.where as FindOptionsWhere<Ticket>[];
+      expect(where[0].status).toBe(TicketStatus.OPEN);
+      expect(where[1].status).toBe(TicketStatus.OPEN);
     });
   });
 
