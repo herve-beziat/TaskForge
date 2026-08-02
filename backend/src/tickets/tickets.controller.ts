@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { Auth } from '../auth/auth.decorator';
 import type { UtilisateurAuthentifie } from '../auth/jwt.strategy';
@@ -18,6 +27,16 @@ export interface TicketPublic {
   resolvedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface UtilisateurResume {
+  id: string;
+  name: string;
+}
+
+export interface TicketDetaille extends TicketPublic {
+  reporter: UtilisateurResume;
+  assignee: UtilisateurResume | null;
 }
 
 export interface ListeTicketsPublique {
@@ -61,6 +80,27 @@ export class TicketsController {
     return {
       ...resultat,
       donnees: resultat.donnees.map((ticket) => this.projeter(ticket)),
+    };
+  }
+
+  // ParseUUIDPipe transforme un identifiant malformé en 400 avant que la
+  // requête n'atteigne la base, qui renverrait sinon une erreur de conversion.
+  @Get(':id')
+  async detail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() requete: Request,
+  ): Promise<TicketDetaille> {
+    const demandeur = requete.user as UtilisateurAuthentifie;
+    const ticket = await this.tickets.trouverParId(id, demandeur);
+
+    return {
+      ...this.projeter(ticket),
+      reporter: { id: ticket.reporter.id, name: ticket.reporter.name },
+      // Le nom seul, jamais l'email : le critère demande d'afficher les
+      // intervenants, pas de publier leurs coordonnées.
+      assignee: ticket.assignee
+        ? { id: ticket.assignee.id, name: ticket.assignee.name }
+        : null,
     };
   }
 

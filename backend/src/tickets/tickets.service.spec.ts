@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Counter } from 'prom-client';
 import { Repository } from 'typeorm';
 import { UserRole } from '../users/user.entity';
@@ -23,7 +24,7 @@ const admin = {
 };
 
 type DepotSimule = jest.Mocked<
-  Pick<Repository<Ticket>, 'create' | 'save' | 'findAndCount'>
+  Pick<Repository<Ticket>, 'create' | 'save' | 'findAndCount' | 'findOne'>
 >;
 type CompteurSimule = jest.Mocked<Pick<Counter<string>, 'inc'>>;
 
@@ -33,7 +34,12 @@ describe('TicketsService', () => {
   let service: TicketsService;
 
   beforeEach(() => {
-    depot = { create: jest.fn(), save: jest.fn(), findAndCount: jest.fn() };
+    depot = {
+      create: jest.fn(),
+      save: jest.fn(),
+      findAndCount: jest.fn(),
+      findOne: jest.fn(),
+    };
     compteur = { inc: jest.fn() };
     service = new TicketsService(
       depot as unknown as Repository<Ticket>,
@@ -120,6 +126,66 @@ describe('TicketsService', () => {
       expect(resultat.total).toBe(25);
       expect(resultat.pages).toBe(3);
       expect(resultat.page).toBe(1);
+    });
+  });
+
+  describe('trouverParId', () => {
+    const ticketDuSimple = {
+      id: '44444444-4444-4444-4444-444444444444',
+      reporterId: ID_RAPPORTEUR,
+    } as Ticket;
+
+    it('renvoie son ticket au rapporteur', async () => {
+      depot.findOne.mockResolvedValue(ticketDuSimple);
+
+      const resultat = await service.trouverParId(
+        ticketDuSimple.id,
+        utilisateur,
+      );
+
+      expect(resultat).toBe(ticketDuSimple);
+    });
+
+    it("renvoie le ticket d'autrui à un technicien", async () => {
+      depot.findOne.mockResolvedValue(ticketDuSimple);
+
+      const resultat = await service.trouverParId(
+        ticketDuSimple.id,
+        technicien,
+      );
+
+      expect(resultat).toBe(ticketDuSimple);
+    });
+
+    it("lève une erreur quand le ticket n'existe pas", async () => {
+      depot.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.trouverParId(ticketDuSimple.id, admin),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it("renvoie 404 et non 403 sur le ticket d'un autre utilisateur", async () => {
+      // Un 403 confirmerait l'existence du ticket : il suffirait d'énumérer
+      // des identifiants pour cartographier la base. Ce test interdit de
+      // « clarifier » la réponse en 403, ce qui paraîtrait pourtant plus juste.
+      depot.findOne.mockResolvedValue({
+        ...ticketDuSimple,
+        reporterId: '99999999-9999-9999-9999-999999999999',
+      });
+
+      await expect(
+        service.trouverParId(ticketDuSimple.id, utilisateur),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('charge le rapporteur et l’assigné', async () => {
+      depot.findOne.mockResolvedValue(ticketDuSimple);
+
+      await service.trouverParId(ticketDuSimple.id, admin);
+
+      const appel = depot.findOne.mock.calls[0][0];
+      expect(appel?.relations).toEqual({ reporter: true, assignee: true });
     });
   });
 });
