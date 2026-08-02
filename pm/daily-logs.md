@@ -92,9 +92,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 - **Fait hier** : huit tâches livrées en une session — TECH09, TECH10, US01, US02, TECH11, US03 et US04, soit 22 SP. Les EPIC 0 et 1 sont clos, l'EPIC 2 est entamé
 - **Prévu aujourd'hui** : US05 à US08 pour boucler la gestion des tickets — consultation, détail, modification, machine à états
-- **Réalisé** : US05
+- **Réalisé** : US05 et US06
 - **Blocages** : aucun
-- **SP restants** : 55 / 101
+- **SP restants** : 53 / 101
 
 ---
 
