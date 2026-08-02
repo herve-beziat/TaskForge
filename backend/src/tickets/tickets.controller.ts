@@ -15,6 +15,7 @@ import type { UtilisateurAuthentifie } from '../auth/jwt.strategy';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { ChangeStatusDto } from './dto/change-status.dto';
 import { Ticket, TicketPriority, TicketStatus } from './ticket.entity';
 import { TicketsService } from './tickets.service';
 
@@ -118,6 +119,24 @@ export class TicketsController {
   ): Promise<TicketDetaille> {
     const demandeur = requete.user as UtilisateurAuthentifie;
     const ticket = await this.tickets.modifier(id, donnees, demandeur);
+    return this.projeterEnDetail(ticket);
+  }
+
+  // Route dédiée plutôt qu'un champ du PATCH général : le statut n'obéit pas
+  // aux mêmes règles que le titre ou la priorité. Il suit une machine à états
+  // et des droits distincts — les mélanger rendrait les deux illisibles.
+  @Patch(':id/status')
+  async changerStatut(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() donnees: ChangeStatusDto,
+    @Req() requete: Request,
+  ): Promise<TicketDetaille> {
+    const demandeur = requete.user as UtilisateurAuthentifie;
+    const ticket = await this.tickets.changerStatut(
+      id,
+      donnees.status,
+      demandeur,
+    );
     return this.projeterEnDetail(ticket);
   }
 
