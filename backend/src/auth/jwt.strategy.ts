@@ -13,10 +13,16 @@ export interface ContenuJeton {
   email: string;
 }
 
+// name et createdAt sont là pour GET /auth/me : au rechargement d'une page, le
+// front rejoue cet appel pour reconstituer la session, et il lui faut la même
+// projection que celle renvoyée à la connexion. L'entité est déjà chargée par
+// validate(), ces deux champs ne coûtent donc aucune requête.
 export interface UtilisateurAuthentifie {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
+  createdAt: Date;
 }
 
 // Échoue bruyamment plutôt que de se rabattre sur une chaîne vide : sans ce
@@ -73,8 +79,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     return {
       id: utilisateur.id,
       email: utilisateur.email,
+      name: utilisateur.name,
       // Lu en base, jamais dans le jeton : c'est la base qui fait autorité.
       role: utilisateur.role,
+      createdAt: utilisateur.createdAt,
     };
   }
 }

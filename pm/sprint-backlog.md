@@ -94,6 +94,27 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 
 ---
 
+## EPIC 8 — Interface utilisateur `sprint-2`
+
+> **Ajouté le 2 août, en cours de sprint 2.** Le numéro 8 reflète la date d'ajout, pas la position dans le flux.
+>
+> **Oubli d'estimation à l'origine, pas un ajout de périmètre.** Les seize US ci-dessus sont rédigées en critères backend et ont toutes été fermées sur une livraison backend : l'interface n'était chiffrée nulle part, alors qu'elle est exigée par le cahier des charges. Le périmètre passe de 101 à 124 SP. La correction est visible sur la courbe « Périmètre » du burndown, au même titre que TECH22.
+
+| ID | User story | Critères d'acceptation | SP |
+|---|---|---|---|
+| TECH23 | Fondation front | Client HTTP avec injection du jeton et gestion du 401, store Pinia d'authentification, routeur avec gardes par rôle, mise en page et navigation | 5 |
+| US17 | En tant que visiteur, je veux m'inscrire et me connecter depuis l'interface | Deux écrans, erreurs de validation affichées, redirection après connexion, persistance de la session | 3 |
+| US18 | En tant qu'utilisateur, je veux consulter la liste des tickets depuis l'interface | Tableau paginé, filtres, tri et recherche câblés sur `GET /tickets` | 5 |
+| US19 | En tant qu'utilisateur, je veux ouvrir le détail d'un ticket depuis l'interface | Détail complet, modification, changement de statut selon la machine à états, assignation | 5 |
+| US20 | En tant qu'utilisateur, je veux créer un ticket depuis l'interface | Formulaire titre / description / priorité, erreurs de validation affichées | 2 |
+| US21 | En tant qu'admin, je veux administrer les utilisateurs depuis l'interface | Liste, changement de rôle, désactivation | 3 |
+
+**Sous-total : 23 SP**
+
+> US16 (graphique de répartition) reste rattachée à l'EPIC 5 et dépend de TECH23.
+
+---
+
 ## EPIC 6 — Qualité & tests `sprint-2`
 
 | ID | Intitulé | Critères d'acceptation | SP |
@@ -150,14 +171,22 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 | EPIC 3 — Assignation | 5 |
 | EPIC 4 — Filtres & recherche | 8 |
 | EPIC 5 — Dashboard | 8 |
+| EPIC 8 — Interface utilisateur | 23 |
 | EPIC 6 — Tests | 7 |
 | EPIC 7 — Livrables | 17 |
-| **Total MVP** | **101** |
+| **Total MVP** | **124** |
 | Bonus (hors engagement) | 23 |
 
-**Répartition visée** — Sprint 1 : EPIC 0+1+2 = **56 SP** sur 6 jours (~9 SP/jour) · Sprint 2 : EPIC 3+4+5+6+7 = **45 SP** sur 4 jours (~11 SP/jour).
+**Répartition visée** — Sprint 1 : EPIC 0+1+2 = **56 SP** sur 6 jours (~9 SP/jour) · Sprint 2 : EPIC 3+4+5+6+7+8 = **68 SP** sur 4 jours (~17 SP/jour).
 
-**Journal du périmètre** — 28/07 : +3 SP (TECH22, Traefik, demande de l'encadrant). Total initial 98 → 101.
+**Journal du périmètre**
+
+| Date | Delta | Motif | Total |
+|---|---|---|---|
+| 28/07 | +3 | TECH22 (Traefik), demande de l'encadrant | 98 → 101 |
+| 02/08 | +23 | EPIC 8 (interface), oubli d'estimation à la planification | 101 → 124 |
+
+⚠️ **17 SP/jour attendus sur le sprint 2 n'est pas une cadence tenable**, même après une journée à 30 SP le 2 août — celle-ci portait sur du backend posé sur des fondations déjà en place. L'écart sera constaté dans la rétrospective plutôt que résorbé par une coupe du backlog : la décision du 1er août tient, on livre ce qui est livrable et le burndown dit la vérité.
 
 ⚠️ **Sprint 2 est le point de tension.** Il concentre les 17 SP de livrables de soutenance en plus du fonctionnel. Deux mitigations à appliquer dès le sprint 1 :
 
