@@ -27,6 +27,12 @@ const router = createRouter({
       meta: { publique: true },
     },
     {
+      path: '/inscription',
+      name: 'inscription',
+      component: () => import('@/views/InscriptionView.vue'),
+      meta: { publique: true },
+    },
+    {
       // Chargées à la demande : l'écran d'accueil est le seul à faire partie du
       // paquet initial, les autres n'alourdissent pas le premier rendu.
       path: '/:chemin(.*)*',
@@ -50,9 +56,13 @@ router.beforeEach(async (destination) => {
   await auth.restaurer()
 
   if (destination.meta.publique === true) {
-    // Un utilisateur déjà connecté qui revient sur la connexion est renvoyé
-    // vers l'application, plutôt que de voir un formulaire sans objet.
-    if (auth.estConnecte && destination.name === 'connexion') {
+    // Un utilisateur déjà connecté qui revient sur la connexion ou
+    // l'inscription est renvoyé vers l'application, plutôt que de voir un
+    // formulaire sans objet.
+    if (
+      auth.estConnecte &&
+      (destination.name === 'connexion' || destination.name === 'inscription')
+    ) {
       return { name: 'accueil' }
     }
     return true

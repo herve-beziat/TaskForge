@@ -104,7 +104,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Correction de périmètre, +23 SP** : l'interface n'était chiffrée nulle part. Les seize US du backlog sont rédigées en critères backend et ont toutes été fermées sur une livraison backend, alors que le cahier des charges exige une interface. Ce n'est pas un ajout de scope mais un oubli d'estimation à la planification. EPIC 8 créé (TECH23, US17 à US21), périmètre 101 → 124. Une courbe « Périmètre » a été ajoutée au burndown : sans elle, l'ajout se serait lu comme une journée improductive
 - **Réalisé (suite)** : TECH23 — socle du front. Client HTTP avec injection du jeton et traitement du 401, store Pinia d'authentification, routeur et gardes, mise en page. Dix tests front, contre un seul jusqu'ici
 - **Correctif au passage** : `GET /auth/me` ne renvoyait que `id`, `email` et `role`, quand la connexion renvoie la projection complète. Au rechargement d'une page, le nom affiché dans la barre de navigation aurait disparu. La stratégie JWT charge déjà l'entité entière, les deux champs manquants ne coûtent aucune requête
-- **SP restants** : 40 / 124
+- **Réalisé (suite)** : US17 — écrans d'inscription et de connexion. Première session ouvrable depuis l'interface, sans passer par la console du navigateur
+- **Enabler non prévu** : Nest aplatit les erreurs de `class-validator` en un tableau de chaînes, sans indication du champ en cause. Le critère « erreurs affichées champ par champ » n'était donc pas tenable sans reconnaître les messages à leur texte. Une `exceptionFactory` ajoute un index par propriété au 400, sans retirer le tableau existant — les cinq écrans restants en bénéficient
+- **SP restants** : 37 / 124
 
 ---
 
