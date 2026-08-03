@@ -124,7 +124,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Deux défauts trouvés par la validation manuelle, aucun détectable par un test unitaire** : le bloc d'erreur était placé dans la branche conditionnée au ticket, donc invisible quand le chargement échouait ; et `ParseUUIDPipe` renvoyait son message en anglais au milieu d'une interface française. Troisième occurrence après `resolvedAt` en US08 et la projection en US18 — matière pour la rétro
 - **Réalisé (suite)** : US20 — formulaire de création. Le parcours de démonstration est désormais complet dans l'interface : jusqu'ici un ticket ne pouvait naître que par `curl`, ce que le screencast ne pouvait pas montrer
 - **Uniformisation de l'API** : `POST /tickets` était la seule route de la ressource à répondre une forme différente, `save` ne renvoyant pas les relations. Le service recharge le ticket après l'avoir enregistré — une requête de plus, un seul type côté client
-- **SP restants** : 25 / 124
+- **Réalisé (suite)** : US21 — écran d'administration des comptes. Première mise à l'épreuve réelle de `meta.roles`, déclaré en TECH23 sans qu'aucune route ne s'en serve jusqu'ici
+- **Démonstration à garder pour le screencast** : une session ouverte est refusée dès la désactivation du compte, sans attendre l'expiration du jeton. C'est la décision du jour 5 — le rôle retiré du jeton, le compte relu à chaque requête — qui devient visible à l'écran
+- **SP restants** : 22 / 124
 
 ---
 
