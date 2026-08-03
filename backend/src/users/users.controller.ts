@@ -1,14 +1,7 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Req,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { Auth } from '../auth/auth.decorator';
+import { PipeUuid } from '../common/uuid.pipe';
 import type { UtilisateurAuthentifie } from '../auth/jwt.strategy';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserRole } from './user.entity';
@@ -41,7 +34,7 @@ export class UsersController {
   async modifier(
     // Sans ce pipe, un identifiant malformé atteindrait PostgreSQL et
     // produirait une 500 à partir d'une simple faute de frappe dans l'URL.
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', PipeUuid) id: string,
     @Body() donnees: UpdateUserDto,
     @Req() requete: Request,
   ): Promise<UtilisateurAdministre> {

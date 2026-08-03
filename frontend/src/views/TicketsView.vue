@@ -206,7 +206,11 @@ function allerALaPage(numero: number): void {
             <tr v-for="ticket in tickets" :key="ticket.id">
               <td><BadgeTicket :statut="ticket.status" /></td>
               <td><BadgeTicket :priorite="ticket.priority" /></td>
-              <td>{{ ticket.title }}</td>
+              <td>
+                <RouterLink :to="{ name: 'ticket', params: { id: ticket.id } }">
+                  {{ ticket.title }}
+                </RouterLink>
+              </td>
               <td>{{ ticket.reporter.name }}</td>
               <td>
                 <span v-if="ticket.assignee">{{ ticket.assignee.name }}</span>

@@ -21,6 +21,11 @@ const router = createRouter({
       component: TicketsView,
     },
     {
+      path: '/tickets/:id',
+      name: 'ticket',
+      component: () => import('@/views/TicketView.vue'),
+    },
+    {
       path: '/connexion',
       name: 'connexion',
       component: () => import('@/views/ConnexionView.vue'),

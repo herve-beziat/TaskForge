@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -11,6 +10,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { Auth } from '../auth/auth.decorator';
+import { PipeUuid } from '../common/uuid.pipe';
 import type { UtilisateurAuthentifie } from '../auth/jwt.strategy';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsDto } from './dto/list-tickets.dto';
@@ -95,7 +95,7 @@ export class TicketsController {
   // requête n'atteigne la base, qui renverrait sinon une erreur de conversion.
   @Get(':id')
   async detail(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', PipeUuid) id: string,
     @Req() requete: Request,
   ): Promise<TicketDetaille> {
     const demandeur = requete.user as UtilisateurAuthentifie;
@@ -118,7 +118,7 @@ export class TicketsController {
 
   @Patch(':id')
   async modifier(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', PipeUuid) id: string,
     @Body() donnees: UpdateTicketDto,
     @Req() requete: Request,
   ): Promise<TicketDetaille> {
@@ -132,7 +132,7 @@ export class TicketsController {
   // et des droits distincts — les mélanger rendrait les deux illisibles.
   @Patch(':id/status')
   async changerStatut(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', PipeUuid) id: string,
     @Body() donnees: ChangeStatusDto,
     @Req() requete: Request,
   ): Promise<TicketDetaille> {
@@ -149,7 +149,7 @@ export class TicketsController {
   // règles et son propre contrôle du destinataire.
   @Patch(':id/assignee')
   async assigner(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', PipeUuid) id: string,
     @Body() donnees: AssignTicketDto,
     @Req() requete: Request,
   ): Promise<TicketDetaille> {
