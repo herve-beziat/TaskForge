@@ -110,4 +110,18 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 ---
 
+## Jour 7 — lundi 3 août 2026
+
+**Rôle du jour** : PM matin / Dev journée / QA soir
+
+- **Fait hier** : US05 à US13, US14, US15, TECH12, TECH13, TECH23 et US17 — la gestion des tickets, l'assignation, les filtres, le dashboard, puis le socle du front et les écrans d'authentification. Journée la plus dense du sprint, 56 SP consommés
+- **Fait hier (PM)** : correction de périmètre de 23 SP, l'interface n'ayant jamais été chiffrée. EPIC 8 créé, courbe « Périmètre » ajoutée au burndown
+- **Prévu aujourd'hui** : US18 (liste des tickets), puis US19 (détail) si le rythme le permet
+- **Réalisé** : US18 — tableau paginé, filtres, tri par en-têtes cliquables, recherche temporisée. Les filtres vivent dans l'URL : vue partageable, retour arrière cohérent, filtres retrouvés au retour depuis un autre écran
+- **Fausse piste, une heure perdue** : diagnostic d'une fuite d'email dans le détail des tickets, posé en ne lisant que le service. Le contrôleur portait déjà une projection et n'exposait que l'identifiant et le nom. La correction inutile a produit le symptôme inverse — la liste perdait ses relations. Enseignement pour la rétro : lire la couche qui répond avant de conclure sur celle qui interroge
+- **Blocages** : un, levé — `docker compose restart traefik` interrompu laisse le conteneur dans un état où sa sonde ne répond pas ; autoheal le tue, `unless-stopped` le relance, boucle sans fin en `Restarting (137)`. Sortie : arrêter autoheal, recréer Traefik, relancer autoheal
+- **SP restants** : 32 / 124
+
+---
+
 <!-- Ajouter une entrée par jour ci-dessous, en suivant le template. -->
