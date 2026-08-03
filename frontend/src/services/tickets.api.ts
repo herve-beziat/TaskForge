@@ -3,6 +3,7 @@ import type {
   ChampDeTri,
   PageDeTickets,
   SensDeTri,
+  Ticket,
   TicketPriority,
   TicketStatus,
 } from '@/types/api'
@@ -21,6 +22,26 @@ export type FiltresTickets = {
   sortOrder?: SensDeTri
 }
 
+export type ModificationTicket = {
+  title?: string
+  description?: string
+  priority?: TicketPriority
+}
+
 export const ticketsApi = {
   lister: (filtres: FiltresTickets = {}) => api.get<PageDeTickets>('/tickets', filtres),
+
+  detail: (id: string) => api.get<Ticket>(`/tickets/${id}`),
+
+  modifier: (id: string, donnees: ModificationTicket) =>
+    api.patch<Ticket>(`/tickets/${id}`, donnees),
+
+  // Routes distinctes côté backend, et à raison : le statut suit une machine à
+  // états et l'assignation contrôle son destinataire. Les fondre dans le PATCH
+  // général rendrait les trois règles illisibles.
+  changerStatut: (id: string, status: TicketStatus) =>
+    api.patch<Ticket>(`/tickets/${id}/status`, { status }),
+
+  assigner: (id: string, assigneeId: string | null) =>
+    api.patch<Ticket>(`/tickets/${id}/assignee`, { assigneeId }),
 }
