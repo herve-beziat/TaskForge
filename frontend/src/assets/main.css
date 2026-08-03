@@ -160,6 +160,35 @@ button.danger {
   background: var(--couleur-danger);
 }
 
+/* Un lien qui a l'apparence d'un bouton. Nécessaire parce qu'un <button> ne
+   peut pas être imbriqué dans un <a> : la spécification interdit d'emboîter
+   deux éléments interactifs, et les lecteurs d'écran annoncent alors n'importe
+   quoi. Ici la sémantique reste celle d'un lien — il navigue, il n'agit pas. */
+.lien-bouton {
+  display: inline-block;
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid transparent;
+  border-radius: var(--rayon);
+  font-weight: 500;
+  text-decoration: none;
+  background: var(--couleur-primaire);
+  color: #fff;
+}
+
+.lien-bouton:hover {
+  background: var(--couleur-primaire-sombre);
+}
+
+.lien-bouton.secondaire {
+  background: var(--couleur-surface);
+  border-color: var(--couleur-bordure);
+  color: var(--couleur-texte);
+}
+
+.lien-bouton.secondaire:hover {
+  background: var(--couleur-fond);
+}
+
 /* --- Tableaux -------------------------------------------------------------- */
 
 table {

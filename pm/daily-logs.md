@@ -122,7 +122,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Blocages** : un, levé — `docker compose restart traefik` interrompu laisse le conteneur dans un état où sa sonde ne répond pas ; autoheal le tue, `unless-stopped` le relance, boucle sans fin en `Restarting (137)`. Sortie : arrêter autoheal, recréer Traefik, relancer autoheal
 - **Réalisé (suite)** : US19 — écran de détail. Modification, machine à états et assignation, avec les actions interdites masquées plutôt que grisées. La table des transitions est recopiée côté front, duplication assumée et documentée : sans elle l'écran proposerait des boutons voués à un 400
 - **Deux défauts trouvés par la validation manuelle, aucun détectable par un test unitaire** : le bloc d'erreur était placé dans la branche conditionnée au ticket, donc invisible quand le chargement échouait ; et `ParseUUIDPipe` renvoyait son message en anglais au milieu d'une interface française. Troisième occurrence après `resolvedAt` en US08 et la projection en US18 — matière pour la rétro
-- **SP restants** : 27 / 124
+- **Réalisé (suite)** : US20 — formulaire de création. Le parcours de démonstration est désormais complet dans l'interface : jusqu'ici un ticket ne pouvait naître que par `curl`, ce que le screencast ne pouvait pas montrer
+- **Uniformisation de l'API** : `POST /tickets` était la seule route de la ressource à répondre une forme différente, `save` ne renvoyant pas les relations. Le service recharge le ticket après l'avoir enregistré — une requête de plus, un seul type côté client
+- **SP restants** : 25 / 124
 
 ---
 

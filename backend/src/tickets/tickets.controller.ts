@@ -58,14 +58,18 @@ export interface ListeTicketsPublique {
 export class TicketsController {
   constructor(private readonly tickets: TicketsService) {}
 
+  // Renvoie la même forme que les cinq autres routes de la ressource : le
+  // service recharge le ticket avec ses relations après l'avoir enregistré.
+  // Une création qui répondrait autrement obligerait le client à porter deux
+  // types pour un même objet.
   @Post()
   async creer(
     @Body() donnees: CreateTicketDto,
     @Req() requete: Request,
-  ): Promise<TicketPublic> {
+  ): Promise<TicketDetaille> {
     const demandeur = requete.user as UtilisateurAuthentifie;
     const ticket = await this.tickets.creer(donnees, demandeur.id);
-    return this.projeter(ticket);
+    return this.projeterEnDetail(ticket);
   }
 
   // Le DTO en @Query bénéficie de la validation et de la conversion de types

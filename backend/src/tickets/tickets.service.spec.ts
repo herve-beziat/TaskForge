@@ -32,7 +32,7 @@ const admin = {
 type DepotSimule = jest.Mocked<
   Pick<
     Repository<Ticket>,
-    'create' | 'save' | 'findAndCount' | 'findOne' | 'update'
+    'create' | 'save' | 'findAndCount' | 'findOne' | 'findOneOrFail' | 'update'
   >
 >;
 type CompteurSimule = jest.Mocked<Pick<Counter<string>, 'inc'>>;
@@ -50,6 +50,7 @@ describe('TicketsService', () => {
       save: jest.fn(),
       findAndCount: jest.fn(),
       findOne: jest.fn(),
+      findOneOrFail: jest.fn(),
       update: jest.fn(),
     };
     compteur = { inc: jest.fn() };
@@ -66,6 +67,7 @@ describe('TicketsService', () => {
       const attendu = { ...donnees, reporterId: ID_RAPPORTEUR } as Ticket;
       depot.create.mockReturnValue(attendu);
       depot.save.mockResolvedValue(attendu);
+      depot.findOneOrFail.mockResolvedValue(attendu);
 
       await service.creer(donnees, ID_RAPPORTEUR);
 
@@ -80,15 +82,40 @@ describe('TicketsService', () => {
       const enregistre = { ...donnees, reporterId: ID_RAPPORTEUR } as Ticket;
       depot.create.mockReturnValue(enregistre);
       depot.save.mockResolvedValue(enregistre);
+      depot.findOneOrFail.mockResolvedValue(enregistre);
 
       await service.creer(donnees, ID_RAPPORTEUR);
 
       expect(compteur.inc).toHaveBeenCalledTimes(1);
     });
 
+    it('renvoie le ticket rechargé avec ses relations', async () => {
+      // `save` ne renvoie pas reporter ni assignee. Sans relecture, la création
+      // serait la seule route de la ressource à répondre une forme différente.
+      const enregistre = { id: 'abc', ...donnees } as Ticket;
+      const recharge = {
+        ...enregistre,
+        reporter: { id: ID_RAPPORTEUR, name: 'Auteur' },
+      } as Ticket;
+
+      depot.create.mockReturnValue(enregistre);
+      depot.save.mockResolvedValue(enregistre);
+      depot.findOneOrFail.mockResolvedValue(recharge);
+
+      const resultat = await service.creer(donnees, ID_RAPPORTEUR);
+
+      const appel = depot.findOneOrFail.mock.calls[0][0];
+      expect(appel.relations).toEqual({ reporter: true, assignee: true });
+      expect(resultat).toBe(recharge);
+    });
+
     it("n'incrémente pas le compteur si la persistance échoue", async () => {
       // Déplacer l'incrément avant le save ne casserait rien de visible et
       // fausserait le compteur à chaque échec. Ce test l'interdit.
+      //
+      // La relecture qui suit, en revanche, est postérieure à l'incrément : le
+      // ticket existe dès le save, et un échec de relecture ne doit pas faire
+      // disparaître une création réelle du compteur.
       depot.create.mockReturnValue({} as Ticket);
       depot.save.mockRejectedValue(new Error('base indisponible'));
 

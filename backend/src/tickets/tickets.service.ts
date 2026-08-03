@@ -69,9 +69,20 @@ export class TicketsService {
 
     // Après la persistance uniquement : compter les créations qui échouent
     // donnerait une métrique fausse, ce qui est pire qu'une métrique absente.
+    //
+    // Avant la relecture, en revanche : le ticket existe dès le save, et un
+    // échec de relecture ne doit pas faire disparaître une création réelle du
+    // compteur.
     this.compteurCreations.inc();
 
-    return enregistre;
+    // `save` renvoie l'entité telle qu'écrite, sans reporter ni assignee. Sans
+    // cette relecture, POST /tickets serait la seule route de la ressource à
+    // renvoyer une forme différente des cinq autres — et le type `Ticket` du
+    // front serait faux pour ce seul cas.
+    return this.depot.findOneOrFail({
+      where: { id: enregistre.id },
+      relations: RELATIONS_TICKET,
+    });
   }
 
   async lister(
