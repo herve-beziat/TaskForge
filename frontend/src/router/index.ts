@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import TicketsView from '@/views/TicketsView.vue'
-import type { UserRole } from '@/types/api'
+import { UserRole } from '@/types/api'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -32,6 +32,15 @@ const router = createRouter({
       path: '/tickets/:id',
       name: 'ticket',
       component: () => import('@/views/TicketView.vue'),
+    },
+    {
+      path: '/administration',
+      name: 'administration',
+      component: () => import('@/views/AdministrationView.vue'),
+      // Première utilisation réelle de meta.roles, déclaré en TECH23. Confort
+      // d'affichage uniquement : le backend répond 403 de toute façon, mais
+      // afficher un écran vide à qui n'y a pas droit n'aide personne.
+      meta: { roles: [UserRole.ADMIN] },
     },
     {
       path: '/connexion',
