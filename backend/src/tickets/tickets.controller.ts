@@ -44,7 +44,7 @@ export interface TicketDetaille extends TicketPublic {
 }
 
 export interface ListeTicketsPublique {
-  donnees: TicketPublic[];
+  donnees: TicketDetaille[];
   total: number;
   page: number;
   limit: number;
@@ -81,9 +81,13 @@ export class TicketsController {
     const demandeur = requete.user as UtilisateurAuthentifie;
     const resultat = await this.tickets.lister(options, demandeur);
 
+    // projeterEnDetail et non projeter : la liste affiche les noms du
+    // rapporteur et de l'assigné, et le service charge désormais les relations
+    // pour ça. La projection reste la même que celle du détail — deux formes
+    // différentes pour la même ressource obligeraient le front à deux types.
     return {
       ...resultat,
-      donnees: resultat.donnees.map((ticket) => this.projeter(ticket)),
+      donnees: resultat.donnees.map((ticket) => this.projeterEnDetail(ticket)),
     };
   }
 
