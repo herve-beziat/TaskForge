@@ -24,6 +24,9 @@ function creerRouteur(): Router {
     routes: [
       { path: '/', name: 'accueil', component: VUE_VIDE },
       { path: '/connexion', name: 'connexion', component: VUE_VIDE },
+      // Le profil du test est administrateur : sans cette route, le lien
+      // d'administration affiché par la barre ne se résout pas.
+      { path: '/administration', name: 'administration', component: VUE_VIDE },
     ],
   })
 }

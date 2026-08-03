@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { UserRole } from '@/types/api'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -17,7 +18,10 @@ async function seDeconnecter(): Promise<void> {
       <RouterLink :to="{ name: 'accueil' }" class="marque">TaskForge</RouterLink>
 
       <nav class="ligne">
-        <RouterLink :to="{ name: 'accueil' }">Tableau de bord</RouterLink>
+        <RouterLink :to="{ name: 'accueil' }">Tickets</RouterLink>
+        <RouterLink v-if="auth.aLeRole(UserRole.ADMIN)" :to="{ name: 'administration' }">
+          Administration
+        </RouterLink>
       </nav>
 
       <div class="ligne">
