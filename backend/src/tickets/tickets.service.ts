@@ -31,6 +31,20 @@ export interface ResultatPagine {
   pages: number;
 }
 
+// Projection commune à la liste et au détail.
+//
+// Les relations sont réduites à l'identifiant et au nom. Les charger entières
+// fait partir l'email, isActive, createdAt et updatedAt de chaque rapporteur
+// dans la réponse — gratuitement, et pour tout utilisateur autorisé à voir le
+// ticket. La colonne du hachage est déjà écartée par select: false, mais elle
+// n'est pas la seule donnée à ne pas diffuser.
+//
+// Les colonnes racine sont listées explicitement : dès qu'une projection porte
+// sur une relation, TypeORM restreint aussi la table principale à ce qui est
+// nommé. Une colonne ajoutée à l'entité et oubliée ici disparaîtrait de l'API.
+
+const RELATIONS_TICKET = { reporter: true, assignee: true };
+
 @Injectable()
 export class TicketsService {
   constructor(
@@ -72,6 +86,12 @@ export class TicketsService {
 
     const [donnees, total] = await this.depot.findAndCount({
       where: this.construireFiltre(options, demandeur),
+      // Charger les noms coûte une jointure par page de vingt lignes, et évite
+      // à l'interface d'afficher des identifiants illisibles ou de lancer une
+      // requête par ligne pour les résoudre.
+      // Le contrôleur expose ces noms dans la liste ; sans la jointure, il
+      // faudrait une requête par ligne pour les résoudre.
+      relations: RELATIONS_TICKET,
       // La clé est calculée, mais ChampDeTri est une union de littéraux : le
       // typage tient sans conversion. C'est cette énumération, déclarée dans le
       // DTO, qui garantit qu'aucune chaîne arbitraire n'atteint la clause
@@ -93,9 +113,10 @@ export class TicketsService {
   async trouverParId(id: string, demandeur: Demandeur): Promise<Ticket> {
     const ticket = await this.depot.findOne({
       where: { id },
-      // Le hachage du mot de passe reste exclu de ces relations : la colonne
-      // porte select: false depuis US01.
-      relations: { reporter: true, assignee: true },
+      // Le hachage du mot de passe est écarté par select: false depuis US01.
+      // Le reste de l'entité ne sort pas non plus : c'est le contrôleur qui
+      // projette, dans projeterEnDetail.
+      relations: RELATIONS_TICKET,
     });
 
     if (!ticket) {

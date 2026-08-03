@@ -213,6 +213,13 @@ describe('TicketsService', () => {
       expect(where[0].status).toBe(TicketStatus.OPEN);
       expect(where[1].status).toBe(TicketStatus.OPEN);
     });
+
+    it('charge les noms du rapporteur et de l’assigné', async () => {
+      await service.lister({}, admin);
+
+      const appel = depot.findAndCount.mock.calls[0][0];
+      expect(appel?.relations).toEqual({ reporter: true, assignee: true });
+    });
   });
 
   describe('trouverParId', () => {

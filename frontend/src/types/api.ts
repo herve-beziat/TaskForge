@@ -50,6 +50,21 @@ export const LIBELLE_ROLE: Record<UserRole, string> = {
   ADMIN: 'Administrateur',
 }
 
+export const ChampDeTri = {
+  CREATED_AT: 'createdAt',
+  PRIORITY: 'priority',
+  STATUS: 'status',
+} as const
+
+export type ChampDeTri = (typeof ChampDeTri)[keyof typeof ChampDeTri]
+
+export const SensDeTri = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const
+
+export type SensDeTri = (typeof SensDeTri)[keyof typeof SensDeTri]
+
 export interface Utilisateur {
   id: string
   email: string
@@ -68,8 +83,20 @@ export interface ResultatConnexion {
   utilisateur: Utilisateur
 }
 
+// Ce que l'API expose d'un utilisateur au sein d'un ticket : rien de plus que
+// de quoi l'identifier et l'afficher. Le backend projette explicitement ces
+// deux colonnes — charger l'entité entière ferait partir l'email de chaque
+// rapporteur à tout utilisateur autorisé à voir le ticket.
+export interface UtilisateurReduit {
+  id: string
+  name: string
+}
+
 // Les dates arrivent en chaînes ISO : JSON n'a pas de type date, et les
 // convertir à la volée masquerait le fait qu'elles ne sont pas des Date.
+//
+// Liste et détail renvoient la même forme : une seule projection côté backend,
+// donc un seul type ici.
 export interface Ticket {
   id: string
   title: string
@@ -79,14 +106,10 @@ export interface Ticket {
   resolvedAt: string | null
   reporterId: string
   assigneeId: string | null
+  reporter: UtilisateurReduit
+  assignee: UtilisateurReduit | null
   createdAt: string
   updatedAt: string
-}
-
-// Le détail charge les relations, la liste ne les charge pas.
-export interface TicketDetaille extends Ticket {
-  reporter: Utilisateur
-  assignee: Utilisateur | null
 }
 
 export interface PageDeTickets {
