@@ -28,8 +28,18 @@ export type ModificationTicket = {
   priority?: TicketPriority
 }
 
+// La priorité est le seul champ facultatif : l'entité applique MEDIUM par
+// défaut. Le formulaire l'envoie tout de même, il propose un choix explicite.
+export type CreationTicket = {
+  title: string
+  description: string
+  priority?: TicketPriority
+}
+
 export const ticketsApi = {
   lister: (filtres: FiltresTickets = {}) => api.get<PageDeTickets>('/tickets', filtres),
+
+  creer: (donnees: CreationTicket) => api.post<Ticket>('/tickets', donnees),
 
   detail: (id: string) => api.get<Ticket>(`/tickets/${id}`),
 

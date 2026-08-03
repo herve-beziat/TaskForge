@@ -104,7 +104,12 @@ function allerALaPage(numero: number): void {
 
 <template>
   <section class="pile">
-    <h1>Tickets</h1>
+    <div class="ligne titre">
+      <h1>Tickets</h1>
+      <RouterLink :to="{ name: 'nouveau-ticket' }" class="lien-bouton">
+        Signaler un incident
+      </RouterLink>
+    </div>
 
     <div class="carte pile">
       <div class="ligne filtres">
@@ -311,5 +316,15 @@ th[aria-sort]:not([aria-sort='none']) .tri {
 
 .pagination {
   justify-content: space-between;
+}
+
+.titre {
+  justify-content: space-between;
+}
+
+/* Le h1 porte une marge basse dans les styles de base : sur une ligne à deux
+   éléments, elle décale le titre par rapport au lien. */
+.titre h1 {
+  margin: 0;
 }
 </style>

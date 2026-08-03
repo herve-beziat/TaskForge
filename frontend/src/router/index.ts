@@ -20,6 +20,14 @@ const router = createRouter({
       name: 'accueil',
       component: TicketsView,
     },
+    // Déclarée avant `/tickets/:id`. Vue Router privilégie les segments
+    // statiques, l'ordre n'est donc pas strictement nécessaire — mais il rend
+    // la règle lisible plutôt que dépendante d'un comportement du routeur.
+    {
+      path: '/tickets/nouveau',
+      name: 'nouveau-ticket',
+      component: () => import('@/views/NouveauTicketView.vue'),
+    },
     {
       path: '/tickets/:id',
       name: 'ticket',
