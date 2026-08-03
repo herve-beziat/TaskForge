@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { construireErreurDeValidation } from './common/validation-exception';
 
 async function bootstrap() {
   // bufferLogs met en attente les messages émis pendant l'amorçage, le temps
@@ -22,6 +23,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       // Convertit le corps reçu en instance réelle du DTO, avec ses types.
       transform: true,
+      // Ajoute au 400 un index des messages par propriété. Sans lui, un
+      // formulaire ne peut rattacher une erreur à son champ qu'en reconnaissant
+      // le texte du message.
+      exceptionFactory: construireErreurDeValidation,
     }),
   );
 
