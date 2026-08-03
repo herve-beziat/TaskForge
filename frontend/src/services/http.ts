@@ -8,12 +8,26 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 export class ErreurApi extends Error {
   readonly statut: number
   readonly messages: string[]
+  readonly champs: Record<string, string[]>
 
-  constructor(statut: number, messages: string[]) {
+  constructor(statut: number, messages: string[], champs: Record<string, string[]> = {}) {
     super(messages[0] ?? 'Une erreur inattendue est survenue.')
     this.name = 'ErreurApi'
     this.statut = statut
     this.messages = messages
+    this.champs = champs
+  }
+
+  // Messages rattachés à un champ précis. Les composants s'en servent pour
+  // afficher l'erreur sous le bon libellé, sans reconnaître le texte.
+  erreursDe(champ: string): string[] {
+    return this.champs[champ] ?? []
+  }
+
+  // Ce qui n'est rattaché à aucun champ : conflit d'unicité, identifiants
+  // refusés, panne réseau. Affiché en tête de formulaire.
+  get messagesGeneraux(): string[] {
+    return Object.keys(this.champs).length === 0 ? this.messages : []
   }
 }
 
@@ -65,6 +79,28 @@ function extraireMessages(corps: unknown): string[] {
   return []
 }
 
+function extraireChamps(corps: unknown): Record<string, string[]> {
+  if (typeof corps !== 'object' || corps === null) {
+    return {}
+  }
+
+  const champs = (corps as { champs?: unknown }).champs
+
+  if (typeof champs !== 'object' || champs === null) {
+    return {}
+  }
+
+  const resultat: Record<string, string[]> = {}
+
+  for (const [nom, valeur] of Object.entries(champs)) {
+    if (Array.isArray(valeur)) {
+      resultat[nom] = valeur.filter((entree): entree is string => typeof entree === 'string')
+    }
+  }
+
+  return resultat
+}
+
 async function requete<T>(
   methode: string,
   chemin: string,
@@ -109,7 +145,11 @@ async function requete<T>(
     }
 
     const messages = extraireMessages(corps)
-    throw new ErreurApi(reponse.status, messages.length > 0 ? messages : [reponse.statusText])
+    throw new ErreurApi(
+      reponse.status,
+      messages.length > 0 ? messages : [reponse.statusText],
+      extraireChamps(corps),
+    )
   }
 
   return corps as T
