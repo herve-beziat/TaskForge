@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Collecte Prometheus — TaskForge
+#
+# Prometheus interroge le backend par le réseau interne de Docker Compose, sur
+# son nom de service. L'endpoint public /metrics n'est pas utilisé ici : il
+# n'aurait aucune raison de transiter par le reverse proxy.
+# ---------------------------------------------------------------------------
+
+global:
+  # Dix secondes plutôt que la minute par défaut : sur une démonstration de
+  # quelques minutes, une courbe relevée deux fois ne montre rien.
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: taskforge-backend
+    metrics_path: /metrics
+    static_configs:
+      # Port écrit en dur : Prometheus ne lit pas le fichier .env, et cette
+      # valeur doit rester alignée sur BACKEND_PORT. C'est la seule duplication
+      # de la configuration, elle est signalée ici pour qu'on la retrouve.
+      - targets: ['backend:3000']
+        labels:
+          service: backend
+
+  # Prometheus se surveille lui-même : sans cette cible, une panne de collecte
+  # ne laisserait aucune trace exploitable.
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: prometheus
