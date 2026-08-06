@@ -19,6 +19,9 @@ async function seDeconnecter(): Promise<void> {
 
       <nav class="ligne">
         <RouterLink :to="{ name: 'accueil' }">Tickets</RouterLink>
+        <RouterLink v-if="auth.aLeRole(UserRole.ADMIN)" :to="{ name: 'dashboard' }">
+          Tableau de bord
+        </RouterLink>
         <RouterLink v-if="auth.aLeRole(UserRole.ADMIN)" :to="{ name: 'administration' }">
           Administration
         </RouterLink>

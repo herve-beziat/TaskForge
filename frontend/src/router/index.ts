@@ -34,6 +34,15 @@ const router = createRouter({
       component: () => import('@/views/TicketView.vue'),
     },
     {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('@/views/DashboardView.vue'),
+      // Comme l'endpoint : GET /dashboard/stats est réservé à ADMIN depuis le
+      // jour 6, les compteurs agrégeant des tickets qu'un utilisateur ordinaire
+      // ne peut pas consulter un par un.
+      meta: { roles: [UserRole.ADMIN] },
+    },
+    {
       path: '/administration',
       name: 'administration',
       component: () => import('@/views/AdministrationView.vue'),

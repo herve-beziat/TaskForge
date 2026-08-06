@@ -88,9 +88,11 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 |---|---|---|---|
 | US14 | En tant qu'admin, je veux voir les statistiques afin de piloter l'activité | Compteurs tickets ouverts / en cours / résolus | 3 |
 | US15 | En tant qu'admin, je veux voir le temps moyen de résolution afin de mesurer la performance | `avg(resolved_at - created_at)` sur les tickets résolus ; affichage lisible (h/j) | 2 |
-| US16 | En tant qu'admin, je veux visualiser la répartition afin d'identifier les tendances | Graphique simple par priorité et par statut | 3 |
+| US16 | En tant qu'admin, je veux visualiser la répartition afin d'identifier les tendances | Graphique simple par priorité et par statut | ~~3~~ **5** |
 
-**Sous-total : 8 SP**
+**Sous-total : ~~8~~ 10 SP**
+
+> **Réestimée le 06/08, de 3 à 5 SP.** L'intitulé ne parlait que du graphique, mais aucun écran n'affiche `/dashboard/stats` : US14 et US15 ont livré la donnée sans support. US16 porte donc l'écran entier — compteurs, temps moyen, répartition — et non un seul composant. Erreur d'estimation à la planification, corrigée plutôt que dissimulée.
 
 ---
 
@@ -170,11 +172,11 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 | EPIC 2 — Tickets | 16 |
 | EPIC 3 — Assignation | 5 |
 | EPIC 4 — Filtres & recherche | 8 |
-| EPIC 5 — Dashboard | 8 |
+| EPIC 5 — Dashboard | 10 |
 | EPIC 8 — Interface utilisateur | 23 |
 | EPIC 6 — Tests | 7 |
 | EPIC 7 — Livrables | 17 |
-| **Total MVP** | **124** |
+| **Total MVP** | **126** |
 | Bonus (hors engagement) | 23 |
 
 **Répartition visée** — Sprint 1 : EPIC 0+1+2 = **56 SP** sur 6 jours (~9 SP/jour) · Sprint 2 : EPIC 3+4+5+6+7+8 = **68 SP** sur 4 jours (~17 SP/jour).
@@ -185,6 +187,7 @@ Tout ce bloc est posé **jour 1-2**, sur une base vide. Rétrofitté jour 8, ça
 |---|---|---|---|
 | 28/07 | +3 | TECH22 (Traefik), demande de l'encadrant | 98 → 101 |
 | 02/08 | +23 | EPIC 8 (interface), oubli d'estimation à la planification | 101 → 124 |
+| 06/08 | +2 | US16 réestimée de 3 à 5 SP — l'écran de dashboard n'existait pas, la story portait plus qu'un graphique | 124 → 126 |
 
 ⚠️ **17 SP/jour attendus sur le sprint 2 n'est pas une cadence tenable**, même après une journée à 30 SP le 2 août — celle-ci portait sur du backend posé sur des fondations déjà en place. L'écart sera constaté dans la rétrospective plutôt que résorbé par une coupe du backlog : la décision du 1er août tient, on livre ce qui est livrable et le burndown dit la vérité.
 
