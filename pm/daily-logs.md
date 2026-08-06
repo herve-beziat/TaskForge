@@ -173,7 +173,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réalisé (suite)** : TECH20 — rétrospective. Écrite à partir des dix daily logs et du journal du périmètre, sans rien reconstituer après coup : c'est ce que le suivi quotidien permet
 - **Constat central de la rétro** : les 193 tests automatisés n'ont détecté aucun des quatre bugs réels du sprint. Tous ont été trouvés en recette manuelle, et trois vivaient **entre** deux couches correctement testées séparément
 - **TECH18 et TECH19 écartés** sur décision de l'examinateur, qui préfère une démonstration commentée en direct. Ils restent au backlog et au burndown — les en retirer aurait embelli la courbe sans changer la réalité
-- **SP restants** : 15 / 126
+- **Réalisé (suite)** : TECH16 — ADR, treize décisions documentées. Les quatre points nommés par le sujet y figurent, plus trois **écarts assumés** (`pg_trgm` non posé, `/metrics` sans authentification, table des transitions dupliquée côté front), une concession de sécurité (socket Docker) et deux **rectifications** d'analyses fausses
+- **Parti pris de l'ADR** : un registre qui ne contiendrait que de bonnes décisions n'en serait pas un. Ce sont les choix qu'on sait imparfaits et qu'on justifie quand même qui rendent le document crédible
+- **SP restants** : 12 / 126
 
 ---
 
