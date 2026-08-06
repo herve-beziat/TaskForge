@@ -163,8 +163,11 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réestimation** : US16 passe de 3 à 5 SP. L'intitulé ne parlait que du graphique, mais aucun écran n'affichait `/dashboard/stats` — US14 et US15 avaient livré la donnée sans support. Périmètre 124 → 126
 - **Réalisé** : US16 — tableau de bord complet. Compteurs cliquables menant à la liste filtrée, temps moyen de résolution, deux graphiques de répartition en SVG. **L'EPIC 5 est clos**, et avec lui tout le fonctionnel hors tests
 - **Choix technique** : graphique en SVG à la main plutôt que Chart.js. La donnée est une répartition sur quatre catégories, pas une série temporelle — une bibliothèque aurait ajouté une dépendance, un rebuild d'image et une intégration Vue pour huit barres horizontales
+- **Réalisé (suite)** : TECH14 — matrice de permissions sur les dix routes sensibles, croisée avec anonyme, utilisateur, technicien et administrateur. **L'EPIC 6 est clos**, et avec lui tout le fonctionnel : il ne reste que les livrables
+- **Le test a été éprouvé par mutation** : `@Auth()` retiré de `TicketsController`, neuf échecs, tous imputables au décorateur, puis remis. Un test de permissions qui ne peut pas échouer ne prouve rien
+- **193 tests au total**, 139 backend et 54 frontend
 - **Blocages** : aucun
-- **SP restants** : 19 / 126
+- **SP restants** : 17 / 126
 
 ---
 
