@@ -170,7 +170,10 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réalisé (suite)** : USB01 — Prometheus et Grafana, premier bonus « Pour aller plus loin ». Source de données et tableau de bord provisionnés depuis le dépôt : `make start` suffit à obtenir la supervision en place, sans rien configurer dans l'interface. L'endpoint `/metrics`, exposé depuis TECH09, trouve enfin un consommateur
 - **Bonus hors engagement** : les 3 SP ne réduisent pas le burndown du MVP, qui reste à 17. Le compter dedans reviendrait à masquer le retard sur les livrables par du travail non engagé
 - **README mis à jour** : section observabilité, structure du dépôt, tableau des URL, et le piège Traefik consigné pour ne pas le redécouvrir en direct
-- **SP restants** : 17 / 126
+- **Réalisé (suite)** : TECH20 — rétrospective. Écrite à partir des dix daily logs et du journal du périmètre, sans rien reconstituer après coup : c'est ce que le suivi quotidien permet
+- **Constat central de la rétro** : les 193 tests automatisés n'ont détecté aucun des quatre bugs réels du sprint. Tous ont été trouvés en recette manuelle, et trois vivaient **entre** deux couches correctement testées séparément
+- **TECH18 et TECH19 écartés** sur décision de l'examinateur, qui préfère une démonstration commentée en direct. Ils restent au backlog et au burndown — les en retirer aurait embelli la courbe sans changer la réalité
+- **SP restants** : 15 / 126
 
 ---
 
