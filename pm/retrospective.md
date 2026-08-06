@@ -23,10 +23,10 @@ informé. Ce document dit ce qui s'est passé, pas ce qui aurait dû se passer.
 | 7 | lun 03/08 | 22 | US18 à US21 |
 | 8 | mar 04/08 | 22 | **rien** |
 | 9 | mer 05/08 | 22 | **rien** |
-| 10 | jeu 06/08 | 12 | US16, TECH14, TECH16, TECH20, USB01 (bonus) |
+| 10 | jeu 06/08 | 8 | US16, TECH14, TECH15, TECH16, TECH17, TECH20, USB01 (bonus) |
 
 **Quatre journées sur dix n'ont produit aucun point.** Les six autres ont absorbé
-114 SP, dont 56 sur la seule journée du 2 août. Ce n'est pas une vélocité, c'est
+118 SP, dont 56 sur la seule journée du 2 août. Ce n'est pas une vélocité, c'est
 une alternance entre l'arrêt et la session de dix heures.
 
 ### Périmètre
@@ -198,7 +198,7 @@ pour `resolvedAt`, pas systématiquement ailleurs.
 
 | ID | Livrable | Statut |
 |---|---|---|
-| TECH15 | Diagramme d'architecture | Non livré |
+| TECH15 | Diagramme d'architecture | Livré — sources Mermaid versionnées, rendues par `make diagram` |
 | TECH16 | ADR | Livré — treize décisions, dont trois écarts assumés et deux rectifications |
 | TECH17 | README complet | Livré |
 | TECH18 | Screencast | **Non retenu** — l'examinateur demande une démonstration en direct |

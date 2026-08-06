@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help init install start stop restart logs ps lint lint-fix format test burndown prod clean
+.PHONY: help init install start stop restart logs ps lint lint-fix format test burndown diagram prod clean
 
 help: ## Affiche cette aide
 	@echo "TaskForge — commandes disponibles"
@@ -60,6 +60,18 @@ burndown: ## Régénère pm/burndown.png depuis pm/burndown.csv
 		-v "$(PWD)/pm:/pm" \
 		python:3.12-slim \
 		sh -c "pip install -q matplotlib && python /pm/burndown.py"
+
+diagram: ## Régénère les diagrammes docs/*.png depuis les sources docs/*.mmd
+	docker run --rm \
+		--user "$$(id -u):$$(id -g)" \
+		-v "$(PWD)/docs:/data" \
+		minlag/mermaid-cli:11.4.2 \
+		-i /data/architecture.mmd -o /data/architecture.png -b white -s 2
+	docker run --rm \
+		--user "$$(id -u):$$(id -g)" \
+		-v "$(PWD)/docs:/data" \
+		minlag/mermaid-cli:11.4.2 \
+		-i /data/data-model.mmd -o /data/data-model.png -b white -s 2
 
 prod: ## Lance la stack en mode production
 	@test -f docker-compose.prod.yml \

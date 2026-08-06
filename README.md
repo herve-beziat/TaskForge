@@ -105,6 +105,31 @@ docker compose -f docker-compose.prod.yml down # l'arrêter
 > produit. Changer l'URL de l'API en production impose donc de reconstruire
 > l'image du frontend.
 
+## Architecture et modèle de données
+
+![Architecture](docs/architecture.png)
+
+Un seul port est publié sur la machine hôte, le 80 : tout passe par Traefik, qui
+route selon le sous-domaine. PostgreSQL fait exception en développement, son port
+étant publié pour permettre l'usage d'un client SQL externe ; il ne l'est pas en
+production.
+
+![Modèle de données](docs/data-model.png)
+
+Deux relations entre les mêmes tables, avec des comportements opposés. Supprimer
+un utilisateur ayant signalé des tickets est **impossible** (`RESTRICT`) — c'est
+pourquoi l'administration propose une désactivation et non une suppression. Un
+technicien qui quitte l'équipe **libère** en revanche ses tickets (`SET NULL`).
+
+Les diagrammes sont générés depuis `docs/*.mmd` :
+
+```bash
+make diagram
+```
+
+Les flux commentés, le cycle de vie d'un ticket et les décisions d'architecture
+sont détaillés dans [docs/architecture.md](docs/architecture.md).
+
 ## Configuration
 
 Toutes les variables d'environnement sont documentées dans `.env.example`.
@@ -321,9 +346,8 @@ TaskForge/
 - [pm/sprint-backlog.md](pm/sprint-backlog.md) — backlog estimé et objectifs de sprint
 - [Board Kanban](https://github.com/users/herve-beziat/projects/10)
 
-## À compléter
+## Documentation complémentaire
 
-Ces sections seront renseignées au fil du sprint :
-
-- Schéma de la base de données — TECH17
-- Diagramme d'architecture et ADR — TECH15, TECH16
+- [docs/architecture.md](docs/architecture.md) — flux, modèle de données, cycle de vie d'un ticket
+- [docs/adr.md](docs/adr.md) — décisions d'architecture, écarts assumés et rectifications
+- [pm/retrospective.md](pm/retrospective.md) — déroulement du sprint et enseignements
