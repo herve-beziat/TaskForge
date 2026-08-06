@@ -1,0 +1,24 @@
+# ---------------------------------------------------------------------------
+# Chargement automatique des tableaux de bord depuis le dépôt.
+#
+# Grafana lit le dossier au démarrage puis le surveille : un fichier JSON
+# ajouté ou modifié est repris sans redémarrer le conteneur.
+# ---------------------------------------------------------------------------
+
+apiVersion: 1
+
+providers:
+  - name: TaskForge
+    type: file
+    # Les modifications faites dans l'interface ne sont pas conservées : le
+    # fichier du dépôt fait autorité, et un tableau de bord retouché à la main
+    # serait écrasé au redémarrage. C'est voulu — la source de vérité est le
+    # dépôt, pas le volume.
+    allowUiUpdates: false
+    # Empêche la suppression des tableaux de bord si le provider disparaît.
+    disableDeletion: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
+      # Reproduit l'arborescence du dossier sous forme de dossiers Grafana.
+      foldersFromFilesStructure: false

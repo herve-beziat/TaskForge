@@ -1,0 +1,23 @@
+# ---------------------------------------------------------------------------
+# Source de données Grafana — provisionnée au démarrage.
+#
+# Déclarer la source ici plutôt que de la créer dans l'interface : une source
+# créée à la main vit dans le volume de Grafana et disparaît au premier
+# `docker compose down -v`. Le dépôt doit suffire à reconstituer l'ensemble.
+# ---------------------------------------------------------------------------
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    # Identifiant fixe : c'est par lui que le tableau de bord versionné désigne
+    # sa source. Laissé à Grafana, il serait généré aléatoirement et le JSON
+    # pointerait dans le vide.
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    # Nom de service Docker : Grafana interroge Prometheus par le réseau
+    # interne, sans passer par le reverse proxy.
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
