@@ -166,7 +166,10 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **Réalisé (suite)** : TECH14 — matrice de permissions sur les dix routes sensibles, croisée avec anonyme, utilisateur, technicien et administrateur. **L'EPIC 6 est clos**, et avec lui tout le fonctionnel : il ne reste que les livrables
 - **Le test a été éprouvé par mutation** : `@Auth()` retiré de `TicketsController`, neuf échecs, tous imputables au décorateur, puis remis. Un test de permissions qui ne peut pas échouer ne prouve rien
 - **193 tests au total**, 139 backend et 54 frontend
-- **Blocages** : aucun
+- **Blocages** : un, externe et non résolu — incident GitHub Actions depuis 15 h 22 UTC. La CI de la branche US16 a échoué sans exécuter une étape (`job was not acquired by Runner`), et la poussée de TECH14 n'a déclenché aucune exécution. Le code est vérifié localement — lint propre, 193 tests, recette manuelle passée — mais les exécutions restent à relancer une fois le service rétabli
+- **Réalisé (suite)** : USB01 — Prometheus et Grafana, premier bonus « Pour aller plus loin ». Source de données et tableau de bord provisionnés depuis le dépôt : `make start` suffit à obtenir la supervision en place, sans rien configurer dans l'interface. L'endpoint `/metrics`, exposé depuis TECH09, trouve enfin un consommateur
+- **Bonus hors engagement** : les 3 SP ne réduisent pas le burndown du MVP, qui reste à 17. Le compter dedans reviendrait à masquer le retard sur les livrables par du travail non engagé
+- **README mis à jour** : section observabilité, structure du dépôt, tableau des URL, et le piège Traefik consigné pour ne pas le redécouvrir en direct
 - **SP restants** : 17 / 126
 
 ---
