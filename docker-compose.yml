@@ -174,6 +174,69 @@ services:
       # conteneur est une opération d'écriture. Concession de sécurité assumée.
       - /var/run/docker.sock:/var/run/docker.sock
 
+  # -------------------------------------------------------------------------
+  # Observabilité — Prometheus collecte, Grafana affiche
+  #
+  # Bonus « Pour aller plus loin ». L'endpoint /metrics existait depuis TECH09
+  # sans que rien ne le consomme : ces deux services lui donnent un usage.
+  #
+  # Développement uniquement : les porter en production supposerait de traiter
+  # le mot de passe, l'exposition de Prometheus et la rétention comme des
+  # sujets de production. Hors cadre pour un bonus.
+  # -------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    container_name: taskforge-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # Quinze jours : borne la croissance du volume sans priver d'historique.
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      backend:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_DOMAIN}`)
+      - traefik.http.routers.prometheus.entrypoints=web
+      - traefik.http.services.prometheus.loadbalancer.server.port=9090
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: taskforge-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_SERVER_ROOT_URL: http://${GRAFANA_DOMAIN}
+      # Aucune création de compte : un Grafana ouvert à l'inscription sur un
+      # poste de démonstration est une porte inutile.
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      # Coupe la télémétrie et la vérification de mise à jour : rien à envoyer
+      # depuis un environnement local.
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+    volumes:
+      # En lecture seule : le dépôt fait autorité, le conteneur ne réécrit pas
+      # sa propre configuration.
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)
+      - traefik.http.routers.grafana.entrypoints=web
+      - traefik.http.services.grafana.loadbalancer.server.port=3000
+
 volumes:
   pgdata:
   logs:
+  prometheus-data:
+  grafana-data:
