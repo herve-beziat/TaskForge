@@ -175,7 +175,9 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 - **TECH18 et TECH19 écartés** sur décision de l'examinateur, qui préfère une démonstration commentée en direct. Ils restent au backlog et au burndown — les en retirer aurait embelli la courbe sans changer la réalité
 - **Réalisé (suite)** : TECH16 — ADR, treize décisions documentées. Les quatre points nommés par le sujet y figurent, plus trois **écarts assumés** (`pg_trgm` non posé, `/metrics` sans authentification, table des transitions dupliquée côté front), une concession de sécurité (socket Docker) et deux **rectifications** d'analyses fausses
 - **Parti pris de l'ADR** : un registre qui ne contiendrait que de bonnes décisions n'en serait pas un. Ce sont les choix qu'on sait imparfaits et qu'on justifie quand même qui rendent le document crédible
-- **SP restants** : 12 / 126
+- **Réalisé (suite)** : TECH15 — diagrammes d'architecture et de modèle de données, plus le cycle de vie d'un ticket. Sources Mermaid versionnées, rendues en PNG par `make diagram` dans un conteneur jetable, comme le burndown. Un PNG seul serait un cul-de-sac : ni corrigible ni relisible
+- **TECH17 achevé du même coup** : le schéma de la base était le dernier point ouvert du README
+- **SP restants** : 8 / 126
 
 ---
 
