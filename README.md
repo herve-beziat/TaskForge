@@ -13,6 +13,7 @@ Helpdesk interne de gestion de tickets d'incidents — MVP dockerisé.
 - Assignation et réassignation des tickets aux techniciens
 - Filtrage, tri et recherche textuelle
 - Dashboard : statistiques, temps moyen de résolution, répartition par priorité
+- Observabilité : logs JSON, sondes de santé, métriques Prometheus et Grafana
 
 ## Stack
 
@@ -24,6 +25,7 @@ Helpdesk interne de gestion de tickets d'incidents — MVP dockerisé.
 | Authentification | JWT + guards de rôles |
 | Conteneurisation | Docker + Docker Compose |
 | Reverse proxy | Traefik v3 |
+| Observabilité | Prometheus + Grafana |
 
 ## Prérequis
 
@@ -65,9 +67,11 @@ Toute la stack est servie par Traefik sur le port 80. Les navigateurs résolvent
 | Health check | http://api.taskforge.localhost/health |
 | Métriques | http://api.taskforge.localhost/metrics |
 | Tableau de bord Traefik | http://traefik.localhost |
+| Grafana | http://grafana.localhost |
+| Prometheus | http://prometheus.localhost |
 
-Les domaines sont paramétrables via `APP_DOMAIN`, `API_DOMAIN` et `TRAEFIK_DOMAIN`
-dans le `.env`.
+Les domaines sont paramétrables via `APP_DOMAIN`, `API_DOMAIN`, `TRAEFIK_DOMAIN`,
+`GRAFANA_DOMAIN` et `PROMETHEUS_DOMAIN` dans le `.env`.
 
 ### Modes de lancement
 
@@ -83,6 +87,7 @@ disputeraient le port 80.
 | Frontend servi par | serveur Vite (5173) | nginx (8080) |
 | Port PostgreSQL | publié sur l'hôte | non publié |
 | Tableau de bord Traefik | accessible | désactivé |
+| Prometheus et Grafana | présents | absents |
 
 Les deux piles portent des noms de projet différents (`taskforge` et
 `taskforge-prod`) et possèdent donc leurs propres volumes : lancer la production
@@ -196,6 +201,32 @@ production.
 curl -s http://api.taskforge.localhost/health | python3 -m json.tool
 docker compose ps
 ```
+
+### Redémarrage automatique
+
+`restart: unless-stopped` relance un conteneur dont le processus s'arrête, mais
+**pas** un conteneur dont la sonde échoue alors que le processus tourne encore.
+Docker Compose seul ne sait pas le faire — il faudrait Docker Swarm.
+
+Le service `autoheal` comble cet écart : il surveille les sondes toutes les dix
+secondes et redémarre les conteneurs portant le label `autoheal=true` qui passent
+en `unhealthy`.
+
+Pour l'observer :
+
+```bash
+docker compose stop postgres     # /health du backend renvoie 503
+docker compose ps                # après ~45 s, le backend est redémarré
+docker compose start postgres    # tout revient healthy sans intervention
+```
+
+> Ne jamais interrompre un `docker compose restart traefik` : il ignore le
+> SIGTERM et Docker attend dix secondes avant de le tuer, ce qui donne
+> l'impression d'un blocage. Interrompu, le conteneur repart dans un état où sa
+> sonde ne répond pas, autoheal le tue et la politique de redémarrage le relance
+> — boucle sans fin. En sortir demande d'arrêter autoheal, de **recréer**
+> Traefik (`up -d --force-recreate`), puis de relancer autoheal.
+
 ## Métriques
 
 Le backend expose ses métriques au format Prometheus sur
@@ -223,23 +254,51 @@ brute en produirait une par ressource consultée.
 > de développement. En production, il devrait être restreint au réseau interne ou
 > protégé — les métriques renseignent sur la charge et la structure de l'API.
 
-### Redémarrage automatique
+### Prometheus et Grafana
 
-`restart: unless-stopped` relance un conteneur dont le processus s'arrête, mais
-**pas** un conteneur dont la sonde échoue alors que le processus tourne encore.
-Docker Compose seul ne sait pas le faire — il faudrait Docker Swarm.
+Deux services collectent et affichent ces métriques, **en développement
+uniquement**.
 
-Le service `autoheal` comble cet écart : il surveille les sondes toutes les dix
-secondes et redémarre les conteneurs portant le label `autoheal=true` qui passent
-en `unhealthy`.
+| Service | Adresse | Identifiants |
+|---|---|---|
+| Grafana | http://grafana.localhost | `GRAFANA_USER` / `GRAFANA_PASSWORD` du `.env` |
+| Prometheus | http://prometheus.localhost | — |
 
-Pour l'observer :
+Le tableau de bord **TaskForge — Observabilité** est présent dès le premier
+démarrage : source de données et tableau de bord sont provisionnés depuis le
+dépôt, il n'y a rien à configurer dans l'interface.
+
+```
+prometheus/prometheus.yml                        # cibles et intervalle de collecte
+grafana/provisioning/datasources/prometheus.yml  # source de données
+grafana/provisioning/dashboards/provider.yml     # chargement automatique
+grafana/dashboards/taskforge.json                # le tableau de bord
+```
+
+Prometheus interroge le backend sur le réseau interne (`backend:3000/metrics`),
+sans passer par le reverse proxy. Il relève toutes les dix secondes : sur une
+démonstration de quelques minutes, l'intervalle par défaut d'une minute ne
+montrerait rien.
+
+Le tableau de bord est **en lecture seule** (`allowUiUpdates: false`) : le fichier
+versionné fait autorité. Une retouche faite dans l'interface serait écrasée au
+redémarrage — c'est voulu, la source de vérité est le dépôt et non le volume.
+
+Ces deux services n'ont **ni sonde de santé ni label `autoheal`**, contrairement
+au reste de la stack. Leurs images n'embarquent pas toujours de quoi interroger
+leur propre endpoint, et une sonde qui échouerait à tort déclencherait la boucle
+de redémarrage décrite plus haut. Ce sont des services d'observation : mieux vaut
+les voir tomber que les voir tuer l'application qu'ils observent.
+
+Pour faire bouger les courbes :
 
 ```bash
-docker compose stop postgres     # /health du backend renvoie 503
-docker compose ps                # après ~45 s, le backend est redémarré
-docker compose start postgres    # tout revient healthy sans intervention
+for i in $(seq 1 50); do curl -s -o /dev/null http://api.taskforge.localhost/health; done
 ```
+
+> Le mot de passe Grafana n'est appliqué qu'à l'initialisation du volume. Le
+> modifier ensuite dans le `.env` reste sans effet tant que `grafana-data` n'a
+> pas été supprimé.
 
 ## Structure du dépôt
 
@@ -247,6 +306,8 @@ docker compose start postgres    # tout revient healthy sans intervention
 TaskForge/
 ├── frontend/           # Interface Vue 3
 ├── backend/            # API NestJS
+├── prometheus/         # Configuration de collecte
+├── grafana/            # Source de données et tableaux de bord provisionnés
 ├── docker-compose.yml  # Orchestration de la stack
 ├── .env.example        # Variables d'environnement
 ├── docs/               # Architecture, ADR, support de soutenance
@@ -265,5 +326,4 @@ TaskForge/
 Ces sections seront renseignées au fil du sprint :
 
 - Schéma de la base de données — TECH17
-- Lancement en mode production (`docker-compose.prod.yml`) — TECH10
 - Diagramme d'architecture et ADR — TECH15, TECH16
