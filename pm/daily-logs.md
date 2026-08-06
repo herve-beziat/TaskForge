@@ -130,4 +130,42 @@ Rotation des rôles : casquette PM le matin, dev la journée, QA en fin de journ
 
 ---
 
+## Jour 8 — mardi 4 août 2026
+
+**Rôle du jour** : aucun
+
+- **Fait hier** : US18, US19, US20 et US21 — les quatre écrans fonctionnels, l'EPIC 8 clos
+- **Prévu aujourd'hui** : US16 et TECH14
+- **Réalisé** : rien. Journée non travaillée, indisponibilité personnelle
+- **Blocages** : aucun
+- **SP restants** : 22 / 124
+
+---
+
+## Jour 9 — mercredi 5 août 2026
+
+**Rôle du jour** : aucun
+
+- **Fait hier** : aucune avancée, journée non travaillée
+- **Prévu aujourd'hui** : US16 et TECH14
+- **Réalisé** : rien. Deuxième journée non travaillée consécutive. US16 et TECH14 reportés au jour 10, qui devait être réservé aux livrables
+- **Blocages** : aucun
+- **SP restants** : 22 / 124
+
+---
+
+## Jour 10 — jeudi 6 août 2026
+
+**Rôle du jour** : PM matin / Dev journée / QA soir
+
+- **Fait hier** : aucune avancée, deux journées non travaillées d'affilée
+- **Prévu aujourd'hui** : US16, TECH14, puis le bonus Prometheus + Grafana. Les livrables de l'EPIC 7 sont mis de côté, décision assumée : l'examinateur attend d'abord une démonstration de l'application
+- **Réestimation** : US16 passe de 3 à 5 SP. L'intitulé ne parlait que du graphique, mais aucun écran n'affichait `/dashboard/stats` — US14 et US15 avaient livré la donnée sans support. Périmètre 124 → 126
+- **Réalisé** : US16 — tableau de bord complet. Compteurs cliquables menant à la liste filtrée, temps moyen de résolution, deux graphiques de répartition en SVG. **L'EPIC 5 est clos**, et avec lui tout le fonctionnel hors tests
+- **Choix technique** : graphique en SVG à la main plutôt que Chart.js. La donnée est une répartition sur quatre catégories, pas une série temporelle — une bibliothèque aurait ajouté une dépendance, un rebuild d'image et une intégration Vue pour huit barres horizontales
+- **Blocages** : aucun
+- **SP restants** : 19 / 126
+
+---
+
 <!-- Ajouter une entrée par jour ci-dessous, en suivant le template. -->
