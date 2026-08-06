@@ -1,0 +1,33 @@
+%% Architecture d'exécution — TaskForge
+%% Rendu : make diagram  →  docs/architecture.png
+%% Ce fichier est la source ; le PNG en est le rendu, pas l'inverse.
+
+flowchart TB
+    nav["Navigateur"]
+
+    subgraph docker["Réseau Docker interne"]
+        traefik["Traefik v3.7<br/>reverse proxy<br/>seul port publié : 80"]
+        front["frontend<br/>Vue 3 + Vite<br/>:5173"]
+        back["backend<br/>NestJS<br/>:3000"]
+        db[("postgres<br/>PostgreSQL 17<br/>:5432")]
+        prom["prometheus<br/>:9090<br/>(développement)"]
+        graf["grafana<br/>:3000<br/>(développement)"]
+        heal["autoheal<br/>surveille les sondes"]
+    end
+
+    sock[/"socket Docker<br/>/var/run/docker.sock"/]
+
+    nav -->|"taskforge.localhost<br/>api.taskforge.localhost<br/>grafana.localhost<br/>prometheus.localhost<br/>traefik.localhost"| traefik
+
+    traefik --> front
+    traefik --> back
+    traefik --> graf
+    traefik --> prom
+
+    back -->|"TypeORM"| db
+    prom -->|"scrape /metrics<br/>toutes les 10 s"| back
+    graf -->|"PromQL"| prom
+
+    traefik -.->|"découverte par labels<br/>lecture seule"| sock
+    heal -.->|"redémarrage<br/>lecture-écriture"| sock
+    heal -.->|"redémarre si unhealthy"| back

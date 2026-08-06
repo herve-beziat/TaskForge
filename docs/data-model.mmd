@@ -1,0 +1,30 @@
+%% Modèle de données — TaskForge
+%% Rendu : make diagram  →  docs/data-model.png
+
+erDiagram
+    USER ||--o{ TICKET : signale
+    USER ||--o{ TICKET : traite
+
+    USER {
+        uuid id PK
+        varchar_255 email UK "normalise en minuscules"
+        varchar_255 password_hash "select false — jamais renvoye"
+        varchar_120 name
+        enum role "USER | TECHNICIAN | ADMIN"
+        boolean is_active "defaut true"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    TICKET {
+        uuid id PK
+        varchar_200 title
+        text description
+        enum priority "LOW | MEDIUM | HIGH | CRITICAL — indexe"
+        enum status "OPEN | IN_PROGRESS | RESOLVED | CLOSED — indexe"
+        timestamptz resolved_at "nullable — rempli a la transition"
+        uuid reporter_id FK "indexe — RESTRICT"
+        uuid assignee_id FK "nullable, indexe — SET NULL"
+        timestamptz created_at "indexe — tri par defaut"
+        timestamptz updated_at
+    }
